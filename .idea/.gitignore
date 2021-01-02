@@ -1,0 +1,6 @@
+.env
+.name
+client_secret.json
+*.iml
+*.xml
+*.db
