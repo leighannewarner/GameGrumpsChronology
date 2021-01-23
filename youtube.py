@@ -36,7 +36,6 @@ def list_all_playlists_for_channel(youtube_client, channel_id):
 
     while True:
         print('.', end='', sep='')
-        time.sleep(1)
 
         response = list_playlists_for_channel(youtube_client, channel_id, pagination_token)
         playlists.extend(response.get('items'))
@@ -63,7 +62,6 @@ def list_all_videos_in_playlist(youtube_client, playlist_id):
 
     while True:
         print('.', end='', sep='')
-        time.sleep(1)
 
         response = list_videos_in_playlist(youtube_client, playlist_id, pagination_token)
         videos.extend(response.get('items'))
@@ -76,13 +74,24 @@ def list_all_videos_in_playlist(youtube_client, playlist_id):
 
 
 def list_videos_in_playlist(youtube_client, playlist_id, pagination_token):
-    request = youtube_client.playlistItems().list(
-        part=['id', 'snippet', 'contentDetails'],
-        maxResults=50,
-        playlistId=playlist_id,
-        pageToken=pagination_token
-    )
-    return request.execute()
+    response = None
+    try:
+        request = youtube_client.playlistItems().list(
+            part=['id', 'snippet', 'contentDetails'],
+            maxResults=50,
+            playlistId=playlist_id,
+            pageToken=pagination_token
+        )
+        response = request.execute()
+    except googleapiclient.errors.HttpError as err:
+        code = err.resp.status
+        if code == 403:
+            print(f'\n[{code}] Out of quota')
+            print(err)
+            return response
+        else:
+            raise err
+    return response
 
 
 def list_all_videos_for_range(youtube_client=None, channel_id=None, start_date=None, end_date=None):
@@ -91,7 +100,6 @@ def list_all_videos_for_range(youtube_client=None, channel_id=None, start_date=N
 
     while True:
         print('.', end='', sep='')
-        time.sleep(1)
 
         response = list_videos_for_range(youtube_client=youtube_client, channel_id=channel_id, start_date=start_date,
                                          end_date=end_date, pagination_token=pagination_token)
@@ -139,7 +147,6 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
 
 
 def insert_video_into_playlist(youtube_client, video_id, playlist_id, index):
-    list_all_videos_in_playlist(playlist_id)
     request = youtube_client.playlistItems().insert(
         part="snippet",
         body={
