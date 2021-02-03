@@ -1,6 +1,4 @@
 import os
-import pyrfc3339
-import socket
 import sqlite3
 import youtube
 
@@ -39,7 +37,6 @@ youtube_client = None
 
 
 def main():
-    clear_playlist_dates()
     while True:
         print('[0] Delete database')
         print('[1] Create database')
