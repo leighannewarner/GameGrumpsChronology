@@ -3,3 +3,4 @@
 /playlists.db
 /playlists_bkp.db
 *.pyc
+*.db
