@@ -1,7 +1,7 @@
 import googleapiclient.discovery
 import google_auth_oauthlib.flow
 import os
-import time
+import database
 
 from dotenv import load_dotenv
 
@@ -42,7 +42,7 @@ def list_all_playlists_for_channel(youtube_client, channel_id):
         pagination_token = response.get('nextPageToken')
         if not pagination_token:
             break
-    print('')
+
     return playlists
 
 
@@ -69,7 +69,6 @@ def list_all_videos_in_playlist(youtube_client, playlist_id):
         if not pagination_token:
             break
 
-    print('')
     return videos
 
 
@@ -126,6 +125,14 @@ def list_videos_for_range(youtube_client=None, channel_id=None, start_date=None,
     return request.execute()
 
 
+def get_videos_in_list(youtube_client=None, video_ids=[]):
+    request = youtube_client.videos().list(
+        part="id,snippet",
+        id=video_ids
+    )
+    return request.execute()
+
+
 # MODIFICATION ########################################################################################################
 def create_playlist(youtube_client=None, title='', description='', tags=[]):
     request = youtube_client.playlists().insert(
@@ -146,7 +153,11 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
     return response.get('id')
 
 
-def insert_video_into_playlist(youtube_client, video_id, playlist_id, index):
+def insert_video_into_playlist(youtube_client, video_id, playlist_id, playlist_order, dry_run):
+    index = get_insertion_index(youtube_client, playlist_id, playlist_order)
+    if dry_run:
+        print(f'INDEX: {video_id} / {index}')
+        return
     request = youtube_client.playlistItems().insert(
         part="snippet",
         body={
@@ -160,3 +171,38 @@ def insert_video_into_playlist(youtube_client, video_id, playlist_id, index):
             }
         })
     request.execute()
+    database.mark_video_processed(video_id)
+
+
+def get_insertion_index(youtube_client, playlist_id, playlist_order):
+    pagination_token = None
+    counter = 0
+    while True:
+        response = list_videos_in_playlist(youtube_client, playlist_id, pagination_token)
+        if response is None:
+            raise Exception('Received None response, you\'re probably out of quota')
+        pagination_token = response.get('nextPageToken')
+
+        for result in response.get('items'):
+            video_id = result.get('snippet').get('resourceId').get('videoId')
+            row = database.get_video_row(video_id)
+            if playlist_order <= row['playlist_order']:
+                return result.get('snippet').get('position')
+
+        if not pagination_token:
+            break
+
+    return None
+
+
+def delete_video_from_playlist(youtube_client, video_id, playlist_id):
+    get_request = youtube_client.playlistItems().list(
+        part="id",
+        playlistId=playlist_id,
+        videoId=video_id
+    )
+    result = get_request.execute()
+    for item in result.get('items'):
+        update_request = youtube_client.playlistItems().delete(
+            id=item.get('id'))
+        update_request.execute()
