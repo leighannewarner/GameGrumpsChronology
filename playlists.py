@@ -109,9 +109,11 @@ def store_videos_for_playlist(playlist_id, video_ids):
 
 
 def insert_all_videos():
-    limit = int(input("Limit: "))
-    confirm = input('Dry run y/n: ')
-    dry_run = confirm == 'y'
+    limit = 250
+    # limit = int(input("Limit: "))
+    dry_run = False
+    # confirm = input('Dry run y/n: ')
+    # dry_run = confirm == 'y'
     authorize()
     queue = database.get_video_queue()
     print(f'{len(queue)} videos to process')

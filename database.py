@@ -179,10 +179,15 @@ def clear_created_playlist_table():
 def get_video_row(video_id):
     conn = sqlite3.connect(DATABASE_NAME)
     c = conn.cursor()
-    c.execute(
-        '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed 
-        FROM existing_videos WHERE id = ?''',
-        (video_id,))
+    try:
+        c.execute(
+            '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed 
+            FROM existing_videos WHERE id = ?''',
+            (video_id,))
+    except sqlite3.OperationalError as err:
+        print(err)
+        return None
+
     row = c.fetchone()
     conn.close()
     if row is None:

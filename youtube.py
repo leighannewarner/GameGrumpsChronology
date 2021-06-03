@@ -155,6 +155,8 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
 
 def insert_video_into_playlist(youtube_client, video_id, playlist_id, playlist_order, dry_run):
     index = get_insertion_index(youtube_client, playlist_id, playlist_order)
+    if index is None:
+        print(f'Error retrieving index: {video_id}')
     if dry_run:
         print(f'INDEX: {video_id} / {index}')
         return
@@ -176,7 +178,6 @@ def insert_video_into_playlist(youtube_client, video_id, playlist_id, playlist_o
 
 def get_insertion_index(youtube_client, playlist_id, playlist_order):
     pagination_token = None
-    counter = 0
     while True:
         response = list_videos_in_playlist(youtube_client, playlist_id, pagination_token)
         if response is None:
@@ -186,6 +187,8 @@ def get_insertion_index(youtube_client, playlist_id, playlist_order):
         for result in response.get('items'):
             video_id = result.get('snippet').get('resourceId').get('videoId')
             row = database.get_video_row(video_id)
+            if row is None:
+                return None
             if playlist_order <= row['playlist_order']:
                 return result.get('snippet').get('position')
 
