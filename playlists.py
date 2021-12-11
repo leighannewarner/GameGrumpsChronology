@@ -11,6 +11,12 @@ load_dotenv()
 
 youtube_client = None
 
+UPLOADS_PLAYLISTS = [
+    'UU9CuvdOVfMPvKCiwdGKL3cQ',  # Game Grumps
+    # 'UUXq2nALoSbxLMehAvYTxt_A',  # Grump Out
+    'UUAQ0o3l-H3y_n56C3yJ9EHA'  # The Grumps
+]
+
 
 def main():
     while True:
@@ -21,8 +27,9 @@ def main():
 
         if input_value == '0':
             update_all_playlists()
+            insert_all_videos(False)
         elif input_value == '1':
-            insert_all_videos()
+            insert_all_videos(True)
         elif input_value == '2':
             confirm = input('Create historical y/n: ')
             if confirm == 'y':
@@ -35,6 +42,7 @@ def main():
                 create_playlist('2018-01-00T12:00:00Z', '2018-12-31T11:59:59Z', '2018 - Game Grumps Chronology')
                 create_playlist('2019-01-00T12:00:00Z', '2019-12-31T11:59:59Z', '2019 - Game Grumps Chronology')
                 create_playlist('2020-01-00T12:00:00Z', '2020-12-31T11:59:59Z', '2020 - Game Grumps Chronology')
+                create_playlist('2021-01-00T12:00:00Z', '2021-12-31T11:59:59Z', '2021 - Game Grumps Chronology')
 
             confirm = input('Create from env y/n: ')
             if confirm == 'y':
@@ -108,12 +116,18 @@ def store_videos_for_playlist(playlist_id, video_ids):
     database.store_videos_to_add(id_list)
 
 
-def insert_all_videos():
+def insert_all_videos(prompts):
     limit = 250
-    # limit = int(input("Limit: "))
     dry_run = False
-    # confirm = input('Dry run y/n: ')
-    # dry_run = confirm == 'y'
+
+    if prompts:
+        confirm = input('Dry run y/n: ')
+        dry_run = confirm == 'y'
+        limit = int(input("Limit: "))
+
+    if limit == 0:
+        return
+
     authorize()
     queue = database.get_video_queue()
     print(f'{len(queue)} videos to process')
@@ -124,7 +138,7 @@ def insert_all_videos():
             print('.', end='', sep='')
             time.sleep(0.5)
 
-        if limit <= counter:
+        if limit < counter:
             break
         counter += 1
 
@@ -153,10 +167,19 @@ def authorize():
 
 
 def list_all_uploads():
-    print(f'Retrieving uploads...')
-
     authorize()
-    response_items = youtube.list_all_videos_in_playlist(youtube_client, os.getenv('UPLOADS_PLAYLIST'))
+    items = []
+    for playlist_id in UPLOADS_PLAYLISTS:
+        print(f'[{playlist_id}] Retrieving uploads...')
+        items.extend(list_all_uploads_for_playlist(playlist_id))
+
+    print(items)
+    return items
+
+
+def list_all_uploads_for_playlist(playlist_id):
+    authorize()
+    response_items = youtube.list_all_videos_in_playlist(youtube_client, playlist_id)
 
     items = []
     counter = 0
@@ -235,6 +258,10 @@ def list_all_videos_in_playlist(playlist_id):
             oldest_publish_date = split
 
         video_row = database.get_video_row(video_id)
+
+        if video_row is None:
+            print(f'\n[{video_id}] could not be found, insertion may have failed')
+            continue
 
         # Add the video + playlist relationship if it doesn't exist
         if video_row['existing_playlist_id'] is None:

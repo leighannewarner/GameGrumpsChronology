@@ -45,6 +45,7 @@ SKIP_PLAYLISTS = {
 PLAYLIST_SPLITS = {
     'PLRQGRBgN_Enr363LeUKhGZUif_ctjcSly': '2020-04-07T12:00:00Z',  # Mario Party 2
     'PLRQGRBgN_EnqnzgNkK8uEc6TIw-WLH9WM': '2015-11-20T00:00:00Z',  # Mario party 10
+    'PLRQGRBgN_EnoTjbUUPdHGN0Fs3f6Zl5dL': '2021-04-15T00:00:00Z',  # Danganronpa best ofs
 }
 
 youtube_client = None
@@ -59,6 +60,8 @@ def main():
         print('[4] Find playlist')
         print('[5] Dump created playlists')
         print('[6] Dump queue')
+        print('[7] Spot fix')
+        print('[8] Reset video')
         input_value = input('Option: ')
 
         if input_value == '0':
@@ -82,6 +85,10 @@ def main():
             print_created_playlist_table()
         elif input_value == '6':
             print_queue()
+        elif input_value == '7':
+            spot_fix()
+        elif input_value == '8':
+            reset_video()
         else:
             break
         print('')
@@ -137,6 +144,34 @@ def drop_database():
     conn.close()
 
 
+def spot_fix():
+    video_id = input('Insert after (video ID): ')
+    new_date = input('New Date [yyyy-mm-dd]: ')
+    index = int(input('Index: '))
+    playlist = input('Playlist ID: ')
+
+    row = get_video_row(video_id)
+    order = get_order_string(new_date, index)
+
+    print(f'Update [{row["video_id"]}] insertion order from [{row["playlist_order"]}] to [{order}]')
+    confirm = input('Proceed? (y/n): ')
+    if confirm != 'y':
+        return
+
+    try:
+        update_video_order(video_id, order, playlist)
+    except sqlite3.OperationalError as err:
+        print(err)
+        return
+
+    print('Row updated\n')
+
+
+def reset_video():
+    video_id = input('Video ID: ')
+    mark_video_unprocessed(video_id)
+    remove_video_from_created_playlist(video_id)
+
 # PRINT ###############################################################################################################
 def print_created_playlist_table():
     conn = sqlite3.connect(DATABASE_NAME)
@@ -184,12 +219,12 @@ def get_video_row(video_id):
             '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed 
             FROM existing_videos WHERE id = ?''',
             (video_id,))
+        row = c.fetchone()
+        conn.close()
     except sqlite3.OperationalError as err:
         print(err)
         return None
 
-    row = c.fetchone()
-    conn.close()
     if row is None:
         return None
     return {'video_id': row[0], 'upload_date': row[1], 'existing_playlist_id': row[2], 'created_playlist_id': row[3],
@@ -457,6 +492,14 @@ def mark_all_videos_unprocessed(created_playlist_id):
     conn.close()
 
 
+def remove_video_from_created_playlist(video_id):
+    conn = sqlite3.connect(DATABASE_NAME)
+    c = conn.cursor()
+    c.execute('''UPDATE existing_videos SET created_playlist_id = :new WHERE id = :video_id''',
+              {'video_id': video_id, 'new': None})
+    conn.commit()
+    conn.close()
+
 def remove_created_playlist_id(created_playlist_id):
     conn = sqlite3.connect(DATABASE_NAME)
     c = conn.cursor()
@@ -552,6 +595,15 @@ def unprocess_created_playlist(playlist_id):
             WHERE id = :video_id''',
             values)
     conn.commit()
+
+
+def update_video_order(video_id, playlist_order, playlist_id):
+    conn = sqlite3.connect(DATABASE_NAME)
+    c = conn.cursor()
+    c.execute('''UPDATE existing_videos SET playlist_order = :playlist_order, created_playlist_id = :playlist_id WHERE id = :video_id''',
+              {'playlist_order': playlist_order, 'video_id': video_id, 'playlist_id': playlist_id})
+    conn.commit()
+    conn.close()
 
 
 def remove_skipped_playlists():
