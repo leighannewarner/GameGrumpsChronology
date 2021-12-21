@@ -1,0 +1,78 @@
+import sqlite3
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_NAME = os.getenv('DATABASE_NAME')
+RETRY_LIMIT = int(os.getenv('RETRY_LIMIT'))
+
+
+def get_order_string(date, num):
+    """
+    Get a formatted order string based on a date and an index. These strings are sortable to provide playlist order.
+    """
+    return f'{date}~{"{:0>4d}".format(num)}'
+
+
+def execute(query, values=None):
+    """
+    Execute the given query with the given values, up to the number of retries specified in the dotenv file. Returns a
+    list of all rows.
+    """
+    if values is None:
+        values = {}
+
+    def func(q, v):
+        conn = sqlite3.connect(DATABASE_NAME)
+        c = conn.cursor()
+        c.execute(q, v)
+        rows = c.fetchall()
+        conn.commit()
+        conn.close()
+        return rows
+
+    return _safely_execute(func(query, values))
+
+
+def execute_one(query, values=None):
+    """
+    Execute the given query with the given values, up to the number of retries specified in the dotenv file, then
+    retrieves the first result.
+    """
+    rows = execute(query, values)
+    row = rows[0] if rows else None
+    return row
+
+
+def execute_many(query, values=None):
+    """
+    Execute the given query using "executemany" cursor function
+    """
+    if values is None:
+        values = {}
+
+    def func(q, v):
+        conn = sqlite3.connect(DATABASE_NAME)
+        c = conn.cursor()
+        c.executemany(query, values)
+        conn.commit()
+        conn.close()
+
+    _safely_execute(func(query, values))
+
+
+def _safely_execute(func):
+    """
+    Handle errors for a function containing a sqlite3 database operation.
+    """
+    attempts = 0
+    while attempts < RETRY_LIMIT:
+        try:
+            return func
+            break
+        except sqlite3.OperationalError as err:
+            attempts += 1
+            if attempts >= RETRY_LIMIT:
+                print(err)
+                break

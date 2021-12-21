@@ -1,11 +1,7 @@
 import sqlite3
 import datetime
-from dotenv import load_dotenv
+from database_utils import DATABASE_NAME, RETRY_LIMIT, get_order_string, execute, execute_one, execute_many
 
-load_dotenv()
-
-DATABASE_NAME = 'playlists.db'
-RETRY_LIMIT = 3
 
 # These videos will go in as created instead of chunked together like most playlists
 SKIP_PLAYLISTS = {
@@ -544,10 +540,6 @@ def remove_skipped_playlists():
     for playlist_id in SKIP_PLAYLISTS:
         values = {'playlist_id': playlist_id, 'none_value': None}
         execute('''DELETE FROM existing_playlists WHERE id = :playlist_id''', values)
-
-
-def get_order_string(date, num):
-    return f'{date}~{"{:0>4d}".format(num)}'
 
 
 if __name__ == "__main__":
