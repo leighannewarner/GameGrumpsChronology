@@ -1,6 +1,6 @@
 import sqlite3
-import datetime
-from database_utils import DATABASE_NAME, RETRY_LIMIT, get_order_string, execute, execute_one, execute_many
+import database_utils as utils
+import database_tables as tables
 
 
 # These videos will go in as created instead of chunked together like most playlists
@@ -60,13 +60,13 @@ def main():
         if input_value == '0':
             confirm = input('Delete database y/n: ')
             if confirm == 'y':
-                drop_database()
+                tables.drop_database()
                 print('Database deleted')
         elif input_value == '1':
-            init_db()
+            tables.init()
             print('Database created')
         elif input_value == '2':
-            backup()
+            tables.backup()
             print('Backup created')
         elif input_value == '3':
             video_id = input('Video ID: ')
@@ -90,61 +90,14 @@ def main():
 
 
 # TABLE MANAGEMENT ####################################################################################################
-def init_db():
-    conn = sqlite3.connect(DATABASE_NAME)
-    c = conn.cursor()
-
-    try:
-        c.execute(
-            '''CREATE TABLE existing_videos (
-                id text, upload_date text, existing_playlist_id text, 
-                created_playlist_id text, playlist_order text, processed bool)''')
-    except sqlite3.OperationalError as err:
-        print(err)
-
-    try:
-        c.execute('''CREATE TABLE existing_playlists (id text, date text)''')
-    except sqlite3.OperationalError as err:
-        print(err)
-
-    try:
-        c.execute('''CREATE TABLE created_playlists (id text, start_date text, end_date text)''')
-    except sqlite3.OperationalError as err:
-        print(err)
-
-    conn.commit()
-    conn.close()
-
-
-def backup():
-    date = datetime.datetime.now().strftime("%Y%m%d")
-
-    con = sqlite3.connect(DATABASE_NAME)
-    bck = sqlite3.connect(date + '-' + DATABASE_NAME)
-    with bck:
-        con.backup(bck)
-    bck.close()
-    con.close()
-
-
-def drop_database():
-    conn = sqlite3.connect(DATABASE_NAME)
-    c = conn.cursor()
-    c.execute('''DROP TABLE IF EXISTS existing_videos''')
-    c.execute('''DROP TABLE IF EXISTS existing_playlists''')
-    c.execute('''DROP TABLE IF EXISTS created_playlists''')
-    conn.commit()
-    conn.close()
-
-
 def spot_fix():
     video_id = input('Insert after (video ID): ')
     new_date = input('New Date [yyyy-mm-dd]: ')
     index = int(input('Index: '))
     playlist = input('Playlist ID: ')
 
-    row = get_video_row(video_id)
-    order = get_order_string(new_date, index)
+    row = utils.get_video_row(video_id)
+    order = utils.get_order_string(new_date, index)
 
     print(f'Update [{row["video_id"]}] insertion order from [{row["playlist_order"]}] to [{order}]')
     confirm = input('Proceed? (y/n): ')
@@ -193,9 +146,9 @@ def clear_created_playlist_table():
 def execute(query, values={}):
     retries = 0
     rows = []
-    while retries < RETRY_LIMIT:
+    while retries < utils.RETRY_LIMIT:
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = sqlite3.connect(utils.DATABASE_NAME)
             c = conn.cursor()
             c.execute(query, values)
             rows = c.fetchall()
@@ -203,7 +156,7 @@ def execute(query, values={}):
             conn.close()
         except sqlite3.OperationalError as err:
             retries += 1
-            if retries >= RETRY_LIMIT:
+            if retries >= utils.RETRY_LIMIT:
                 print(err)
                 return []
 
@@ -213,9 +166,9 @@ def execute(query, values={}):
 def execute_one(query, values={}):
     retries = 0
     row = None
-    while retries < RETRY_LIMIT:
+    while retries < utils.RETRY_LIMIT:
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = sqlite3.connect(utils.DATABASE_NAME)
             c = conn.cursor()
             c.execute(query, values)
             row = c.fetchone()
@@ -223,7 +176,7 @@ def execute_one(query, values={}):
             conn.close()
         except sqlite3.OperationalError as err:
             retries += 1
-            if retries >= RETRY_LIMIT:
+            if retries >= utils.RETRY_LIMIT:
                 print(err)
                 return None
 
@@ -232,16 +185,16 @@ def execute_one(query, values={}):
 
 def execute_many(query, values):
     retries = 0
-    while retries < RETRY_LIMIT:
+    while retries < utils.RETRY_LIMIT:
         try:
-            conn = sqlite3.connect(DATABASE_NAME)
+            conn = sqlite3.connect(utils.DATABASE_NAME)
             c = conn.cursor()
             c.executemany(query, values)
             conn.commit()
             conn.close()
         except sqlite3.OperationalError as err:
             retries += 1
-            if retries >= RETRY_LIMIT:
+            if retries >= utils.RETRY_LIMIT:
                 print(err)
                 return
 
@@ -274,8 +227,8 @@ def get_video_playlist(video_id):
 
 
 def get_videos_for_range(start_date, end_date):
-    start_order = get_order_string(start_date, 0)
-    end_order = get_order_string(end_date, 9999)
+    start_order = utils.get_order_string(start_date, 0)
+    end_order = utils.get_order_string(end_date, 9999)
     videos = []
     for row in execute(
             '''SELECT id,created_playlist_id,existing_playlist_id,upload_date,processed FROM existing_videos 
@@ -291,7 +244,7 @@ def get_videos_for_range(start_date, end_date):
 
 
 def get_videos_before(end_date):
-    end_order = get_order_string(end_date, 0)
+    end_order = utils.get_order_string(end_date, 0)
     videos = []
     for row in execute(
             '''SELECT id,created_playlist_id,existing_playlist_id,upload_date,processed FROM existing_videos 
@@ -307,7 +260,7 @@ def get_videos_before(end_date):
 
 
 def get_videos_after(start_date):
-    start_order = get_order_string(start_date, 0)
+    start_order = utils.get_order_string(start_date, 0)
     videos = []
     for row in execute(
             '''SELECT id,created_playlist_id,existing_playlist_id,upload_date,processed FROM existing_videos 
@@ -465,7 +418,7 @@ def update_playlist_dates():
         counter = 0
         after_date = get_videos_after(date)
         for video in after_date:
-            values['order'] = get_order_string(date, counter)
+            values['order'] = utils.get_order_string(date, counter)
             values['video_id'] = video['video_id']
             execute(
                 '''UPDATE existing_videos 
@@ -483,7 +436,7 @@ def clear_playlist_dates():
             values):
         values['video_id'] = row[0]
         values['date'] = row[1]
-        values['order'] = get_order_string(values['date'], 0)
+        values['order'] = utils.get_order_string(values['date'], 0)
         execute(
             '''UPDATE existing_videos 
             SET playlist_order = :order,
@@ -498,7 +451,7 @@ def unprocess_existing_playlist(playlist_id):
             '''SELECT id,upload_date FROM existing_videos WHERE existing_playlist_id = :existing''',
             values):
         values['date'] = row[1]
-        values['order'] = get_order_string(values['date'], 0)
+        values['order'] = utils.get_order_string(values['date'], 0)
         values['video_id'] = row[0]
         execute(
             '''UPDATE existing_videos 
@@ -517,7 +470,7 @@ def unprocess_created_playlist(playlist_id):
             '''SELECT id,upload_date FROM existing_videos WHERE created_playlist_id = :created''',
             values):
         values['date'] = row[1]
-        values['order'] = get_order_string(values['date'], 0)
+        values['order'] = utils.get_order_string(values['date'], 0)
         values['video_id'] = row[0]
         execute(
             '''UPDATE existing_videos 
