@@ -1,5 +1,6 @@
 import database_utils
 import unittest
+from sqlite3 import OperationalError
 from unittest.mock import patch, Mock
 
 
@@ -84,6 +85,19 @@ class DatabaseUtilsTest(unittest.TestCase):
         connect_mock.close.assert_called_once()
 
         cursor_mock.executemany.assert_called_once_with(query, values)
+
+    @patch('sqlite3.connect')
+    def test_execute_fails(self, connect):
+        """
+        Test retry loop of a DB query
+        """
+
+        connect.side_effect = OperationalError
+
+        actual_result = database_utils.execute('', {})
+
+        self.assertEqual(connect.call_count, 3)
+        self.assertEqual(actual_result, [])
 
 
 if __name__ == '__main__':

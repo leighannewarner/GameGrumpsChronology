@@ -23,16 +23,17 @@ def execute(query, values=None):
     if values is None:
         values = {}
 
-    def func(q, v):
+    def func():
         conn = sqlite3.connect(DATABASE_NAME)
         c = conn.cursor()
-        c.execute(q, v)
+        c.execute(query, values)
         rows = c.fetchall()
         conn.commit()
         conn.close()
-        return rows
+        return rows if rows else []
 
-    return _safely_execute(func(query, values))
+    result = _safely_execute(func)
+    return result if result else []
 
 
 def execute_one(query, values=None):
@@ -52,14 +53,14 @@ def execute_many(query, values=None):
     if values is None:
         values = {}
 
-    def func(q, v):
+    def func():
         conn = sqlite3.connect(DATABASE_NAME)
         c = conn.cursor()
         c.executemany(query, values)
         conn.commit()
         conn.close()
 
-    _safely_execute(func(query, values))
+    _safely_execute(func)
 
 
 def _safely_execute(func):
@@ -69,8 +70,7 @@ def _safely_execute(func):
     attempts = 0
     while attempts < RETRY_LIMIT:
         try:
-            return func
-            break
+            return func()
         except sqlite3.OperationalError as err:
             attempts += 1
             if attempts >= RETRY_LIMIT:
