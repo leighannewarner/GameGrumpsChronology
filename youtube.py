@@ -29,6 +29,24 @@ def get_youtube_client():
         API_SERVICE_NAME, API_VERSION, credentials=authorize())
 
 
+def execute_request(request):
+    try:
+        response = request.execute()
+    except googleapiclient.errors.HttpError as err:
+        code = err.resp.status
+        if code == 403:
+            print(f'\n[{code}] Out of quota')
+            raise err
+        if code == 404:
+            print(f'\n[{code}] The item could not be found')
+            print(err)
+            return None
+        else:
+            raise err
+
+    return response
+
+
 # LISTS ###############################################################################################################
 def list_all_playlists_for_channel(youtube_client, channel_id):
     pagination_token = None
@@ -53,7 +71,7 @@ def list_playlists_for_channel(youtube_client, channel_id, pagination_token):
         channelId=channel_id,
         pageToken=pagination_token
     )
-    return request.execute()
+    return execute_request(request)
 
 
 def list_all_videos_in_playlist(youtube_client, playlist_id):
@@ -63,20 +81,9 @@ def list_all_videos_in_playlist(youtube_client, playlist_id):
     while True:
         print('.', end='', sep='')
 
-        try:
-            response = list_videos_in_playlist(youtube_client, playlist_id, pagination_token)
-        except googleapiclient.errors.HttpError as err:
-            code = err.resp.status
-            if code == 403:
-                print(f'\n[{code}] Out of quota')
-                print(err)
-                break
-            if code == 404:
-                print(f'\n[{code}] The playlist could not be found')
-                print(err)
-                break
-            else:
-                raise err
+        response = list_videos_in_playlist(youtube_client, playlist_id, pagination_token)
+        if not response:
+            break
         videos.extend(response.get('items'))
         pagination_token = response.get('nextPageToken')
         if not pagination_token:
@@ -86,23 +93,13 @@ def list_all_videos_in_playlist(youtube_client, playlist_id):
 
 
 def list_videos_in_playlist(youtube_client, playlist_id, pagination_token):
-    response = None
-    try:
-        request = youtube_client.playlistItems().list(
-            part=['id', 'snippet', 'contentDetails'],
-            maxResults=50,
-            playlistId=playlist_id,
-            pageToken=pagination_token
-        )
-        response = request.execute()
-    except googleapiclient.errors.HttpError as err:
-        code = err.resp.status
-        if code == 403:
-            print(f'\n[{code}] Out of quota')
-            print(err)
-            return response
-        else:
-            raise err
+    request = youtube_client.playlistItems().list(
+        part=['id', 'snippet', 'contentDetails'],
+        maxResults=50,
+        playlistId=playlist_id,
+        pageToken=pagination_token
+    )
+    response = execute_request(request)
     return response
 
 
@@ -135,7 +132,7 @@ def list_videos_for_range(youtube_client=None, channel_id=None, start_date=None,
         publishedBefore=end_date,
         pageToken=pagination_token
     )
-    return request.execute()
+    return execute_request(request)
 
 
 def get_videos_in_list(youtube_client=None, video_ids=[]):
@@ -143,7 +140,7 @@ def get_videos_in_list(youtube_client=None, video_ids=[]):
         part="id,snippet",
         id=video_ids
     )
-    return request.execute()
+    return execute_request(request)
 
 
 # MODIFICATION ########################################################################################################
@@ -162,7 +159,7 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
             }
         }
     )
-    response = request.execute()
+    response = execute_request(request)
     return response.get('id')
 
 
@@ -170,6 +167,7 @@ def insert_video_into_playlist(youtube_client, video_id, playlist_id, playlist_o
     index = get_insertion_index(youtube_client, playlist_id, playlist_order)
     if index is None:
         print(f'Error retrieving index: {video_id}')
+        return
     if dry_run:
         print(f'INDEX: {video_id} / {index}')
         return
@@ -185,7 +183,7 @@ def insert_video_into_playlist(youtube_client, video_id, playlist_id, playlist_o
                 }
             }
         })
-    request.execute()
+    execute_request(request)
     database.mark_video_processed(video_id)
 
 
@@ -221,26 +219,8 @@ def delete_video_from_playlist(youtube_client, video_id, playlist_id):
         playlistId=playlist_id,
         videoId=video_id
     )
-    result = get_request.execute()
+    result = execute_request(get_request)
     for item in result.get('items'):
         update_request = youtube_client.playlistItems().delete(
             id=item.get('id'))
         execute_request(update_request)
-
-
-def execute_request(request):
-    try:
-        response = request.execute()
-    except googleapiclient.errors.HttpError as err:
-        code = err.resp.status
-        if code == 403:
-            print(f'\n[{code}] Out of quota')
-            raise err
-        if code == 404:
-            print(f'\n[{code}] The playlist could not be found')
-            print(err)
-            return None
-        else:
-            raise err
-
-    return response

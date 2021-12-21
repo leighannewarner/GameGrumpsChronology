@@ -92,7 +92,9 @@ def update_playlist(playlist_id, start_date, end_date):
 
 
 def create_playlist_from_env():
-    create_playlist(os.getenv('START_DATE'), os.getenv('END_DATE'), os.getenv('PLAYLIST_TITLE'))
+    title = os.getenv('PLAYLIST_TITLE')
+    create_playlist(os.getenv('START_DATE'), os.getenv('END_DATE'), title)
+    print(f'Created playlist [{title}]')
 
 
 def create_playlist(start_date, end_date, title):
