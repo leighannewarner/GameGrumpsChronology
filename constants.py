@@ -43,11 +43,13 @@ STRICT_CHRONO = {
     'PLRQGRBgN_EnrrO28pTREr_JJ8Hc9sLkjq',  # Soviet Jump Game
 }
 
+# These playlists are reversed
 REVERSE_CHRON = {
     'PLRQGRBgN_Eno7t0cHrLVtqtgYp-tUv_t6',  # It Takes Two - playlist is backwards and has dupes?
     'PLRQGRBgN_EnrkKPf62css3lMrX6el6SGy',  # The Evil Within 2
 }
 
+# These playlists contain multiple series and should be split up when inserted
 PLAYLIST_SPLITS = {
     'PLRQGRBgN_Enr363LeUKhGZUif_ctjcSly': ['2020-04-07T12:00:00Z'],  # Mario Party 2
     'PLRQGRBgN_EnqnzgNkK8uEc6TIw-WLH9WM': ['2015-11-20T00:00:00Z'],  # Mario Party 10
@@ -82,7 +84,13 @@ PLAYLIST_SPLITS = {
     'PLRQGRBgN_EnpMcjIlBPqWuFHyjNUJ1Qzy': ['2020-09-2200:00:00'],  # Monopoly vs Supermega
 }
 
-# These videos should not be included
+# These videos should not be included in any playlist
 SKIP_VIDEOS = {
+
+}
+
+# Force videos that are out of order to be inserted correctly
+# Each list should start with a video in the correct slot
+FORCE_ORDER = {
 
 }
