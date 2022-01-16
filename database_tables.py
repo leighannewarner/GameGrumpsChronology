@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+import database_utils as utils
 from database_utils import DATABASE_NAME
 
 
@@ -58,3 +59,27 @@ def drop_database():
     c.execute('''DROP TABLE IF EXISTS created_playlists''')
     conn.commit()
     conn.close()
+
+
+def clear_existing_videos_table():
+    """
+    Clears all data from the videos table
+    """
+
+    utils.execute('''DELETE FROM existing_videos''')
+
+
+def clear_existing_playlist_table():
+    """
+    Clears all data from the existing playlist table
+    """
+
+    utils.execute('''DELETE FROM existing_playlists''')
+
+
+def clear_created_playlist_table():
+    """
+    Clears all data from the created playlist table
+    """
+
+    utils.execute('''DELETE FROM created_playlists''')
