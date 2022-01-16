@@ -6,7 +6,9 @@ from database_utils import DATABASE_NAME
 
 def init():
     """
-    Creates a new db with the name from the dotenv file
+    Creates a new db with the name from the dotenv file.
+
+    :return:
     """
     conn = sqlite3.connect(DATABASE_NAME)
     c = conn.cursor()
@@ -35,7 +37,9 @@ def init():
 
 def backup():
     """
-    Creates a backup of the current database listed in the dotenv file
+    Creates a backup of the current database listed in the dotenv file.
+
+    :return:
     """
     date = datetime.datetime.now().strftime("%Y%m%d")
 
@@ -49,7 +53,9 @@ def backup():
 
 def drop_database():
     """
-    Drops the existing tables out of the database listed in the dotenv
+    Drops the existing tables out of the database listed in the dotenv.
+
+    :return:
     """
 
     conn = sqlite3.connect(DATABASE_NAME)
@@ -63,7 +69,9 @@ def drop_database():
 
 def clear_existing_videos_table():
     """
-    Clears all data from the videos table
+    Clears all data from the videos table.
+
+    :return:
     """
 
     utils.execute('''DELETE FROM existing_videos''')
@@ -71,7 +79,9 @@ def clear_existing_videos_table():
 
 def clear_existing_playlist_table():
     """
-    Clears all data from the existing playlist table
+    Clears all data from the existing playlist table.
+
+    :return:
     """
 
     utils.execute('''DELETE FROM existing_playlists''')
@@ -79,7 +89,9 @@ def clear_existing_playlist_table():
 
 def clear_created_playlist_table():
     """
-    Clears all data from the created playlist table
+    Clears all data from the created playlist table.
+
+    :return:
     """
 
     utils.execute('''DELETE FROM created_playlists''')

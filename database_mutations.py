@@ -3,7 +3,10 @@ import database_utils as utils
 
 def mark_video_unprocessed(video_id):
     """
-    Marks a video as unprocessed
+    Marks a video as unprocessed.
+
+    :param video_id:
+    :return:
     """
 
     utils.execute('''UPDATE existing_videos SET processed = :processed WHERE id = :video_id''',
@@ -12,7 +15,10 @@ def mark_video_unprocessed(video_id):
 
 def mark_playlist_unprocessed(playlist_id):
     """
-    Marks every video in an existing playlist as unprocessed
+    Marks every video in an existing playlist as unprocessed.
+
+    :param playlist_id:
+    :return:
     """
 
     utils.execute(
@@ -22,7 +28,10 @@ def mark_playlist_unprocessed(playlist_id):
 
 def mark_created_playlist_unprocessed(playlist_id):
     """
-    Marks every video in a created playlist as unprocessed
+    Marks every video in a created playlist as unprocessed.
+
+    :param playlist_id:
+    :return:
     """
 
     utils.execute(
@@ -32,7 +41,10 @@ def mark_created_playlist_unprocessed(playlist_id):
 
 def remove_video_from_created_playlist(video_id):
     """
-    Removes the connection between a video and its created playlist
+    Removes the connection between a video and its created playlist.
+
+    :param video_id:
+    :return:
     """
 
     utils.execute('''UPDATE existing_videos SET created_playlist_id = :created_playlist_id WHERE id = :video_id''',
@@ -41,7 +53,10 @@ def remove_video_from_created_playlist(video_id):
 
 def remove_all_from_created_playlist(created_playlist_id):
     """
-    Removes the connection between a video and their created playlist
+    Removes the connection between a video and their created playlist.
+
+    :param created_playlist_id:
+    :return:
     """
 
     utils.execute('''UPDATE existing_videos SET created_playlist_id = :new_id WHERE created_playlist_id = :old_id''',
@@ -50,7 +65,10 @@ def remove_all_from_created_playlist(created_playlist_id):
 
 def remove_playlist_from_created_playlist(existing_playlist_id):
     """
-    Removes the connection between all videos in an existing playlist and their created playlist
+    Removes the connection between all videos in an existing playlist and their created playlist.
+
+    :param existing_playlist_id:
+    :return:
     """
 
     utils.execute(

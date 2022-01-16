@@ -5,6 +5,9 @@ import database_utils as utils
 def get_video_row(video_id):
     """
     Retrieves the specified video row and returns a map of database values.
+
+    :param video_id:
+    :return:
     """
 
     row = utils.execute_one(
@@ -18,7 +21,9 @@ def get_video_row(video_id):
 
 def get_video_queue():
     """
-    Retrieves a list of videos that need to be processed and them as maps of database values
+    Retrieves a list of videos that need to be processed and them as maps of database values.
+
+    :return:
     """
 
     videos = []
@@ -35,9 +40,28 @@ def get_video_queue():
 def get_existing_playlist_row(playlist_id):
     """
     Retrieves the specified playlist row and returns a map of database values.
+
+    :param playlist_id:
+    :return:
     """
 
     row = utils.execute_one(
         '''SELECT id,date FROM existing_playlists WHERE id = :playlist_id''',
         {'playlist_id': playlist_id})[0]
     return row
+
+
+# CREATED PLAYLISTS ###################################################################################################
+def get_created_playlist_id(start_date, end_date):
+    """
+    Retrieves the playlist id for a specified date range.
+
+    :param start_date:
+    :param end_date:
+    :return:
+    """
+    row = utils.execute_one(
+        '''SELECT id FROM created_playlists WHERE start_date = :start_date AND end_date = :end_date''',
+        {start_date, end_date})
+
+    return row[0]

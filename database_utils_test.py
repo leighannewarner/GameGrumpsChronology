@@ -8,14 +8,14 @@ class DatabaseUtilsTest(unittest.TestCase):
 
     def test_order_string(self):
         """
-        Test the order string function
+        Test the order string function.
         """
         self.assertEqual(database_utils.get_order_string("2012-01-00T12:00:00Z", 0), "2012-01-00T12:00:00Z~0000")
 
     @patch('sqlite3.connect')
     def test_execute(self, connect):
         """
-        Test execution of a query
+        Test execution of a query.
         """
 
         expected_result = ['result 1', 'result 2']
@@ -41,7 +41,7 @@ class DatabaseUtilsTest(unittest.TestCase):
     @patch('sqlite3.connect')
     def test_execute_one(self, connect):
         """
-        Test execution of a query, then retrieves the first result
+        Test execution of a query, then retrieves the first result.
         """
 
         expected_result = ['result 1', 'result 2']
@@ -67,7 +67,7 @@ class DatabaseUtilsTest(unittest.TestCase):
     @patch('sqlite3.connect')
     def test_execute_many(self, connect):
         """
-        Test execution of many queries through the sqlite3.execute_many function
+        Test execution of many queries through the sqlite3.execute_many function.
         """
 
         connect_mock = Mock()
@@ -89,7 +89,7 @@ class DatabaseUtilsTest(unittest.TestCase):
     @patch('sqlite3.connect')
     def test_execute_fails(self, connect):
         """
-        Test retry loop of a DB query
+        Test retry loop of a DB query.
         """
 
         connect.side_effect = OperationalError
