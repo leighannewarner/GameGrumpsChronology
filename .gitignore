@@ -4,3 +4,4 @@
 /playlists_bkp.db
 *.pyc
 *.db
+venv/*
