@@ -80,7 +80,7 @@ def remove_playlist_from_created_playlist(existing_playlist_id):
 
 
 # INSERT ##############################################################################################################
-def store_created_playlist(playlist_id, start_date, end_date):
+def insert_created_playlist(playlist_id, start_date, end_date):
     """
     Store information about a created playlist.
 
@@ -93,3 +93,17 @@ def store_created_playlist(playlist_id, start_date, end_date):
     utils.execute(
         '''INSERT INTO created_playlists (id,start_date,end_date) VALUES (:playlist_id,:start_date,:end_date)''',
         {'playlist_id': playlist_id, 'start_date': start_date, 'end_date': end_date})
+
+
+def insert_videos(videos):
+    """
+    Insert all provided videos into the database, where each video is a map containing a video_id, date,
+    and playlist_order.
+
+    :param videos: A list containing dictionaries of video properties
+    :return:
+    """
+
+    utils.execute_many(
+        '''INSERT INTO existing_videos (id,upload_date,playlist_order) VALUES (:video_id,:date,:playlist_order)''',
+        videos)

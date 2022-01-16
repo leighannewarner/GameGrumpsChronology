@@ -100,9 +100,7 @@ PLAYLIST_SPLITS = {
 }
 
 # These videos should not be included in any playlist
-SKIP_VIDEOS = {
-
-}
+SKIP_VIDEOS = []
 
 # Force videos that are out of order to be inserted correctly
 # Each list should start with a video in the correct slot
