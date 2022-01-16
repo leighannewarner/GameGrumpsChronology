@@ -1,16 +1,16 @@
 # A list of tuples containing configs for all the annual playlists
 # Start date, end date, title in order
 CREATED_PLAYLISTS = [('2012-01-00T12:00:00Z', '2013-06-25T17:59:59Z', 'JonTron Era - Game Grumps Chronology'),
-                     # ('2013-06-25T18:00:00Z', '2013-12-31T11:59:59Z', '2013 - Game Grumps Chronology'),
-                     # ('2014-01-00T12:00:00Z', '2014-12-31T11:59:59Z', '2014 - Game Grumps Chronology'),
-                     # ('2015-01-00T12:00:00Z', '2015-12-31T11:59:59Z', '2015 - Game Grumps Chronology'),
-                     # ('2016-01-00T12:00:00Z', '2016-12-31T11:59:59Z', '2016 - Game Grumps Chronology'),
-                     # ('2017-01-00T12:00:00Z', '2017-12-31T11:59:59Z', '2017 - Game Grumps Chronology'),
-                     # ('2018-01-00T12:00:00Z', '2018-12-31T11:59:59Z', '2018 - Game Grumps Chronology'),
-                     # ('2019-01-00T12:00:00Z', '2019-12-31T11:59:59Z', '2019 - Game Grumps Chronology'),
-                     # ('2020-01-00T12:00:00Z', '2020-12-31T11:59:59Z', '2020 - Game Grumps Chronology'),
-                     # ('2021-01-00T12:00:00Z', '2021-12-31T11:59:59Z', '2021 - Game Grumps Chronology'),
-                     # ('2022-01-00T12:00:00Z', '2022-12-31T11:59:59Z', '2022 - Game Grumps Chronology')
+                     ('2013-06-25T18:00:00Z', '2013-12-31T11:59:59Z', '2013 - Game Grumps Chronology'),
+                     ('2014-01-00T12:00:00Z', '2014-12-31T11:59:59Z', '2014 - Game Grumps Chronology'),
+                     ('2015-01-00T12:00:00Z', '2015-12-31T11:59:59Z', '2015 - Game Grumps Chronology'),
+                     ('2016-01-00T12:00:00Z', '2016-12-31T11:59:59Z', '2016 - Game Grumps Chronology'),
+                     ('2017-01-00T12:00:00Z', '2017-12-31T11:59:59Z', '2017 - Game Grumps Chronology'),
+                     ('2018-01-00T12:00:00Z', '2018-12-31T11:59:59Z', '2018 - Game Grumps Chronology'),
+                     ('2019-01-00T12:00:00Z', '2019-12-31T11:59:59Z', '2019 - Game Grumps Chronology'),
+                     ('2020-01-00T12:00:00Z', '2020-12-31T11:59:59Z', '2020 - Game Grumps Chronology'),
+                     ('2021-01-00T12:00:00Z', '2021-12-31T11:59:59Z', '2021 - Game Grumps Chronology'),
+                     ('2022-01-00T12:00:00Z', '2022-12-31T11:59:59Z', '2022 - Game Grumps Chronology')
                      ]
 
 # Playlists containing all uploads

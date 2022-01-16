@@ -62,6 +62,6 @@ def get_created_playlist_id(start_date, end_date):
     """
     row = utils.execute_one(
         '''SELECT id FROM created_playlists WHERE start_date = :start_date AND end_date = :end_date''',
-        {start_date, end_date})
+        {'start_date': start_date, 'end_date': end_date})
 
-    return row[0]
+    return row[0] if row else None

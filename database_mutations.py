@@ -1,6 +1,7 @@
 import database_utils as utils
 
 
+# UNPROCESS ###########################################################################################################
 def mark_video_unprocessed(video_id):
     """
     Marks a video as unprocessed.
@@ -39,6 +40,7 @@ def mark_created_playlist_unprocessed(playlist_id):
         {'processed': False, 'created_playlist_id': playlist_id})
 
 
+# REMOVE FROM PLAYLIST ################################################################################################
 def remove_video_from_created_playlist(video_id):
     """
     Removes the connection between a video and its created playlist.
@@ -75,3 +77,19 @@ def remove_playlist_from_created_playlist(existing_playlist_id):
         '''UPDATE existing_videos SET created_playlist_id = :created_playlist_id WHERE 
         existing_playlist_id = :existing_playlist_id''',
         {'existing_playlist_id': existing_playlist_id, 'created_playlist_id': None})
+
+
+# INSERT ##############################################################################################################
+def store_created_playlist(playlist_id, start_date, end_date):
+    """
+    Store information about a created playlist.
+
+    :param playlist_id:
+    :param start_date:
+    :param end_date:
+    :return:
+    """
+
+    utils.execute(
+        '''INSERT INTO created_playlists (id,start_date,end_date) VALUES (:playlist_id,:start_date,:end_date)''',
+        {'playlist_id': playlist_id, 'start_date': start_date, 'end_date': end_date})
