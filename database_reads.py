@@ -15,6 +15,9 @@ def get_video_row(video_id):
         FROM existing_videos WHERE id = :video_id''',
         {'video_id': video_id})
 
+    if not row:
+        return None
+
     return {'video_id': row[0], 'upload_date': row[1], 'existing_playlist_id': row[2], 'created_playlist_id': row[3],
             'playlist_order': row[4], 'processed': row[5]}
 
@@ -47,8 +50,8 @@ def get_existing_playlist_row(playlist_id):
 
     row = utils.execute_one(
         '''SELECT id,date FROM existing_playlists WHERE id = :playlist_id''',
-        {'playlist_id': playlist_id})[0]
-    return row
+        {'playlist_id': playlist_id})
+    return row[0] if row else None
 
 
 # CREATED PLAYLISTS ###################################################################################################
