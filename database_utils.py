@@ -1,6 +1,7 @@
-import sqlite3
-import os
 from dotenv import load_dotenv
+import os
+import sqlite3
+import time
 
 load_dotenv()
 
@@ -100,3 +101,4 @@ def _safely_execute(func):
             if attempts >= RETRY_LIMIT:
                 print(err)
                 break
+        time.sleep(0.5)

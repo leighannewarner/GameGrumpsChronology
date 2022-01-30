@@ -95,6 +95,16 @@ def insert_created_playlist(playlist_id, start_date, end_date):
         {'playlist_id': playlist_id, 'start_date': start_date, 'end_date': end_date})
 
 
+def insert_existing_playlists(playlists):
+    """
+    Insert a channel's playlist into the existing_playlists table.
+
+    :param playlists: A list of dict objects containing a playlist_id key value
+    :return:
+    """
+    utils.execute_many('''INSERT INTO existing_playlists (id) VALUES (:playlist_id)''', playlists)
+
+
 def insert_videos(videos):
     """
     Insert all provided videos into the database, where each video is a map containing a video_id, date,
