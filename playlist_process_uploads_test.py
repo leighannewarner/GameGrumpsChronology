@@ -110,17 +110,7 @@ class PlaylistOperationsTest(unittest.TestCase):
         database_reads.get_existing_playlist_row.return_value = 'pl1'
         youtube_reads.list_videos_in_playlist.side_effect = [[], self.video_response(), []]
 
-        video_response = [
-            json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "abc123"}},
-                "contentDetails": {"videoPublishedAt": "2012-06-20T22:45:24.000Z"}}'''),
-            json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "def456"}},
-                "contentDetails": {"videoPublishedAt": "2012-07-20T22:45:24.000Z"}}'''),
-            json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "ghi789"}},
-                "contentDetails": {"videoPublishedAt": "2012-08-20T22:45:24.000Z"}}'''),
-        ]
+        video_response = self.video_response()
         youtube_reads.list_videos_in_playlist.side_effect = [[], [], video_response]
 
         process_uploads.process()
@@ -136,16 +126,17 @@ class PlaylistOperationsTest(unittest.TestCase):
              {'video_id': 'ghi789', 'date': '2012-08-20T22:45:24.000Z',
               'playlist_order': '2012-06-20T22:45:24.000Z~0002'}])
 
+
     def video_response(self):
         return [
             json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "abc123"}},
+                '''{"snippet": {"resourceId": {"videoId": "abc123"}}, "publishedAt": "2012-06-20T22:45:24.000Z",
                 "contentDetails": {"videoPublishedAt": "2012-06-20T22:45:24.000Z"}}'''),
             json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "def456"}},
+                '''{"snippet": {"resourceId": {"videoId": "def456"}}, "publishedAt": "2012-06-20T22:45:24.000Z", 
                 "contentDetails": {"videoPublishedAt": "2012-07-20T22:45:24.000Z"}}'''),
             json.loads(
-                '''{"snippet": {"resourceId": {"videoId": "ghi789"}},
+                '''{"snippet": {"resourceId": {"videoId": "ghi789"}}, "publishedAt": "2012-06-20T22:45:24.000Z",
                 "contentDetails": {"videoPublishedAt": "2012-08-20T22:45:24.000Z"}}'''),
         ]
 

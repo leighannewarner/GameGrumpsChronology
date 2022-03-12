@@ -80,7 +80,7 @@ def _process_uploads(response_items):
 
     for result in response_items:
         video_id = result.get('snippet').get('resourceId').get('videoId')
-        publish_date = result.get('contentDetails').get('videoPublishedAt')
+        publish_date = result.get('snippet').get('publishedAt') or result.get('contentDetails').get('videoPublishedAt')
 
         # Skip processing if the video is already processed
         if database_reads.get_video_row(video_id) is not None:
@@ -177,11 +177,12 @@ def _process_playlist(playlists):
     playlist_videos = []
     for playlist in playlists:
         playlist_id = playlist['playlist_id']
+        if playlist_id in config.STRICT_CHRONO:
+            continue
 
-        print(f'{playlist_id} Processing playlist')
+        print(f'[{playlist_id}] Processing playlist')
         videos = _list_videos_in_playlist(playlist_id)
         playlist_videos.extend(_process_playlist_videos(videos))
-    print(playlist_videos)
     return playlist_videos
 
 
@@ -193,10 +194,13 @@ def _process_playlist_videos(videos):
     :return: map of video objects with playlist_order set
     """
 
+    if len(videos) == 0:
+        return []
     video_objects = []
+
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
-        publish_date = video.get('contentDetails').get('videoPublishedAt')
+        publish_date = video.get('snippet').get('publishedAt') or video.get('contentDetails').get('videoPublishedAt')
         video_objects.append({'video_id': video_id, 'date': publish_date})
 
     video_objects = sorted(video_objects, key=lambda i: i['date'])
@@ -211,6 +215,8 @@ def _process_playlist_videos(videos):
     for i in range(len(video_objects)):
         video_objects[i]['playlist_order'] = database_util.get_order_string(oldest_publish_date, index)
         index = index + 1
+
+    print(f'Processed {index} videos\n')
     return video_objects
 
 
