@@ -81,7 +81,7 @@ def remove_playlist_from_created_playlist(existing_playlist_id):
 
 # UPDATE PLAYLIST ORDER ###############################################################################################
 def update_playlist_order(videos):
-    utils.execute_many('''UPDATE existing_videos SET playlist_order = :playlist_order WHERE video_id = :video_id''',
+    utils.execute_many('''UPDATE existing_videos SET playlist_order = :playlist_order WHERE id = :video_id''',
                        videos)
 
 
