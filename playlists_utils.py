@@ -1,7 +1,7 @@
 import youtube_utils
 
 youtube_client = None
-dry_run = False
+dry_run = None
 
 
 def authorize():
@@ -19,5 +19,13 @@ def authorize():
 def dry_run_prompt():
     global dry_run
 
+    if dry_run is not None:
+        return
+
     confirm = input('Dry Run y/n: ')
     dry_run = confirm == 'y'
+
+
+def reset_dry_run_prompt():
+    global dry_run
+    dry_run = None
