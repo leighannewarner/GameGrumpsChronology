@@ -96,7 +96,7 @@ PLAYLIST_SPLITS = {
                                            '2020-04-10T00:00:00'],  # Space Quest
     'PLRQGRBgN_Enp6Rvh3uUtOQ33DAq1mTiZN': ['2021-09-08T00:00:00'],  # Mario Party 6
     'PLRQGRBgN_EnqjoxISQFU5lcfHvgANpOMO': ['2020-11-15T00:00:00'],  # Mario Party 4
-    'PLRQGRBgN_EnpMcjIlBPqWuFHyjNUJ1Qzy': ['2020-09-2200:00:00'],  # Monopoly vs Supermega
+    'PLRQGRBgN_EnpMcjIlBPqWuFHyjNUJ1Qzy': ['2020-09-22T00:00:00'],  # Monopoly vs Supermega
 }
 
 # These videos should not be included in any playlist
