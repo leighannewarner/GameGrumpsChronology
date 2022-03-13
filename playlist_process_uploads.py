@@ -6,6 +6,7 @@ import os
 import playlist_config as config
 import playlists_utils as utils
 import youtube_reads as youtube_read
+import playlist_operations as operations
 
 load_dotenv()
 
@@ -62,7 +63,7 @@ def _list_all_uploads():
 
     for playlist_id in config.UPLOADS_PLAYLISTS:
         print(f'[{playlist_id}] Retrieving uploads...')
-        items.extend(_list_videos_in_playlist(playlist_id))
+        items.extend(operations.list_videos_in_playlist(playlist_id))
 
     return items
 
@@ -87,6 +88,7 @@ def _process_uploads(response_items):
             continue
 
         # Skip processing if the video is in the SKIP_VIDEOS_LIST
+        # TODO: Handle if a video gets added or removed from the skip list
         if video_id in config.SKIP_VIDEOS:
             continue
 
@@ -131,7 +133,8 @@ def _process_channel_playlists(response_items):
         playlist_id = result.get('id')
 
         # Skip processing if the playlist should be skipped when considering insertion order
-        if playlist_id in config.SKIP_PLAYLISTS:
+        # TODO: Handle if a playlist gets added or removed from the skip list
+        if playlist_id in config.SKIP_PLAYLISTS or playlist_id in config.STRICT_CHRONO:
             continue
 
         counter += 1
@@ -177,11 +180,9 @@ def _process_playlist(playlists):
     playlist_videos = []
     for playlist in playlists:
         playlist_id = playlist['playlist_id']
-        if playlist_id in config.STRICT_CHRONO:
-            continue
 
         print(f'[{playlist_id}] Processing playlist')
-        videos = _list_videos_in_playlist(playlist_id)
+        videos = operations.list_videos_in_playlist(playlist_id)
         playlist_videos.extend(_process_playlist_videos(videos))
     return playlist_videos
 
@@ -198,12 +199,14 @@ def _process_playlist_videos(videos):
         return []
     video_objects = []
 
+    # TODO: Handle playlist splits
+    # TODO: Handle if a video is in one of the strict chrono lists
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
         publish_date = video.get('snippet').get('publishedAt') or video.get('contentDetails').get('videoPublishedAt')
         video_objects.append({'video_id': video_id, 'date': publish_date})
 
-    video_objects = sorted(video_objects, key=lambda i: i['date'])
+    video_objects = sorted(video_objects, key=lambda j: j['date'])
 
     oldest_publish_date = None
     for video in video_objects[::1]:
@@ -219,13 +222,3 @@ def _process_playlist_videos(videos):
     print(f'Processed {index} videos\n')
     return video_objects
 
-
-def _list_videos_in_playlist(playlist_id):
-    """
-    Lists all uploads in the given playlist
-
-    :return: A list of videos as json items
-    """
-
-    utils.authorize()
-    return youtube_read.list_videos_in_playlist(utils.youtube_client, playlist_id)

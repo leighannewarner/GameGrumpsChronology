@@ -68,7 +68,6 @@ def list_playlists_on_channel(youtube_client, channel_id):
         if not pagination_token:
             break
 
-    print('\n')
     return playlists
 
 

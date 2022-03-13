@@ -4,6 +4,7 @@ import database_mutations as database_mutate
 import youtube_mutations as youtube_mutate
 import playlist_config as config
 import os
+import youtube_reads as youtube_read
 
 
 def create_playlists():
@@ -45,3 +46,45 @@ def _create_playlist(start_date, end_date, title):
                                                  description=os.getenv('PLAYLIST_DESCRIPTION'), tags=['Game Grumps'])
     database_mutate.insert_created_playlist(playlist_id, start_date, end_date)
     print(f'Created playlist [{playlist_id}]')
+
+
+def insert_video(playlist_id, video_id, position):
+    """
+
+    :param playlist_id:
+    :param video_id:
+    :param position:
+    :return:
+    """
+    utils.dry_run_prompt()
+
+    if utils.dry_run:
+        return
+
+    youtube_mutate.insert_video_into_playlist(youtube_client=utils.youtube_client, video_id=video_id,
+                                              playlist_id=playlist_id, position=position)
+
+
+def list_videos_in_playlist(playlist_id):
+    """
+    Lists all uploads in the given playlist
+
+    :return: A list of videos as json items
+    """
+
+    utils.authorize()
+    return youtube_read.list_videos_in_playlist(utils.youtube_client, playlist_id)
+
+
+def delete_video_from_playlist(playlist_id, video_id):
+    """
+    Delete a video from the given playlist
+
+    :param playlist_id:
+    :param video_id:
+    :return:
+    """
+
+    utils.authorize()
+    youtube_mutate.delete_video_from_playlist(utils.youtube_client, playlist_id, video_id)
+

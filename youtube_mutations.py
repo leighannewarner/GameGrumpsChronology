@@ -1,7 +1,7 @@
 import youtube_utils as utils
 
 
-def create_playlist(youtube_client=None, title='', description='', tags=[]):
+def create_playlist(youtube_client=None, title='', description='', tags=None):
     """
     Creates a playlist on the authorized YouTube account.
 
@@ -11,6 +11,8 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
     :param tags: Playlist tags
     :return:
     """
+    if tags is None:
+        tags = []
     request = youtube_client.playlists().insert(
         part="snippet,status",
         body={
@@ -27,3 +29,32 @@ def create_playlist(youtube_client=None, title='', description='', tags=[]):
     )
     response = utils.execute_request(request)
     return response.get('id')
+
+
+def delete_video_from_playlist(youtube_client=None, video_id='', playlist_id=''):
+    get_request = youtube_client.playlistItems().list(
+        part="id",
+        playlistId=playlist_id,
+        videoId=video_id
+    )
+    result = utils.execute_request(get_request)
+
+    for item in result.get('items'):
+        update_request = youtube_client.playlistItems().delete(id=item.get('id'))
+        utils.execute_request(update_request)
+
+
+def insert_video_into_playlist(youtube_client=None, video_id='', playlist_id='', position=0):
+    request = youtube_client.playlistItems().insert(
+        part="snippet",
+        body={
+            "snippet": {
+                "playlistId": playlist_id,
+                "position": position,
+                "resourceId": {
+                    "kind": "youtube#video",
+                    "videoId": video_id
+                }
+            }
+        })
+    utils.execute_request(request)
