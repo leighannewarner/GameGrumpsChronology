@@ -11,6 +11,7 @@ class DatabaseUtilsTest(unittest.TestCase):
         Test the order string function.
         """
         self.assertEqual(database_utils.get_order_string("2012-01-00T12:00:00Z", 0), "2012-01-00T12:00:00Z~0000")
+        self.assertEqual(database_utils.get_order_string("2022-03-17T17:00:24Z", 0), "2022-03-17T17:00:24Z~0000")
 
     @patch('sqlite3.connect')
     def test_execute(self, connect):
@@ -30,7 +31,7 @@ class DatabaseUtilsTest(unittest.TestCase):
 
         actual_result = database_utils.execute(query, values)
 
-        connect.assert_called_once_with('playlists.db')
+        connect.assert_called_once_with('gg-playlists.db')
         connect_mock.commit.assert_called_once()
         connect_mock.close.assert_called_once()
 
@@ -56,7 +57,7 @@ class DatabaseUtilsTest(unittest.TestCase):
 
         actual_result = database_utils.execute_one(query, values)
 
-        connect.assert_called_once_with('playlists.db')
+        connect.assert_called_once_with('gg-playlists.db')
         connect_mock.commit.assert_called_once()
         connect_mock.close.assert_called_once()
 
@@ -80,7 +81,7 @@ class DatabaseUtilsTest(unittest.TestCase):
 
         database_utils.execute_many(query, values)
 
-        connect.assert_called_once_with('playlists.db')
+        connect.assert_called_once_with('gg-playlists.db')
         connect_mock.commit.assert_called_once()
         connect_mock.close.assert_called_once()
 
