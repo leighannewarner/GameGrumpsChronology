@@ -12,7 +12,7 @@ def get_video_row(video_id):
     """
 
     row = utils.execute_one(
-        '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed 
+        '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed,skipped 
         FROM existing_videos WHERE id = :video_id''',
         {'video_id': video_id})
 
@@ -20,7 +20,22 @@ def get_video_row(video_id):
         return None
 
     return {'video_id': row[0], 'upload_date': row[1], 'existing_playlist_id': row[2], 'created_playlist_id': row[3],
-            'playlist_order': row[4], 'processed': row[5]}
+            'playlist_order': row[4], 'processed': row[5], 'skipped': row[6]}
+
+
+def get_all_videos():
+    """
+    Retrieves a list of all videos
+
+    :return: A list of video objects
+    """
+
+    videos = []
+    for row in utils.execute('''SELECT id,skipped FROM existing_videos'''):
+        videos.append(
+            {'video_id': row[0], 'skipped': row[1]})
+
+    return videos
 
 
 def get_video_queue():
@@ -32,12 +47,12 @@ def get_video_queue():
 
     videos = []
     for row in utils.execute(
-            '''SELECT id,created_playlist_id,playlist_order,processed FROM existing_videos 
-            WHERE created_playlist_id IS NULL 
+            '''SELECT id,created_playlist_id,playlist_order,processed,skipped FROM existing_videos 
+            WHERE created_playlist_id IS NULL AND (skipped IS 0 OR skipped IS NULL)
             ORDER BY playlist_order DESC''',
             {'processed': False}):
         videos.append(
-            {'video_id': row[0], 'playlist_id': row[1], 'order': row[2], 'processed': row[3]})
+            {'video_id': row[0], 'playlist_id': row[1], 'order': row[2], 'processed': row[3], 'skipped': row[4]})
     return videos
 
 
@@ -51,7 +66,7 @@ def get_video_queue_for_range(start_date, end_date):
     videos = []
     for row in utils.execute(
             '''SELECT id,created_playlist_id,playlist_order,processed FROM existing_videos 
-            WHERE playlist_order >= :start_date AND playlist_order <= :end_date
+            WHERE playlist_order >= :start_date AND playlist_order <= :end_date AND (skipped IS 0 OR skipped IS NULL)
             ORDER BY playlist_order DESC''',
             {'start_date': database_utils.get_order_string(start_date, 0),
              'end_date': database_utils.get_order_string(end_date, 9999)}):

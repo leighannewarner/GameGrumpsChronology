@@ -31,6 +31,9 @@ def process():
     else:
         database_mutate.insert_videos(new_uploads)
 
+    # Update the skipped bit for videos
+    _update_skipped()
+
     # List and process all playlists
     raw_playlists = _list_channel_playlists()
     processed_playlists = _process_channel_playlists(raw_playlists)
@@ -221,4 +224,31 @@ def _process_playlist_videos(videos):
 
     print(f'Processed {index} videos\n')
     return video_objects
+
+
+def _update_skipped():
+    database_videos = database_reads.get_all_videos()
+    skipped_videos = set([v['video_id'] for v in database_videos if v['skipped']])
+    inserted_videos = set([v['video_id'] for v in database_videos if not v['skipped']])
+    all_videos = skipped_videos.union(inserted_videos)
+
+    playlist_videos = set([])
+    for playlist in config.FORCE_REMOVE:
+        print(f'[{playlist}] Retrieving videos...')
+        videos = operations.list_videos_in_playlist(playlist)
+        playlist_videos.update([v.get('snippet').get('resourceId').get('videoId') for v in videos])
+
+    set_skipped = set(playlist_videos)
+    set_inserted = all_videos.difference(playlist_videos)
+
+    # Reduce the number of necessary updates by removing videos that are already the correct bit
+    set_skipped = set_skipped.difference(skipped_videos)
+    set_inserted = set_inserted.difference(inserted_videos)
+
+    print(f'Marking {len(set_skipped)} videos to skip.')
+    print(f'Marking {len(set_inserted)} videos to no longer skip.')
+
+    if not utils.dry_run:
+        database_mutations.mark_all_videos_not_skipped(set_inserted)
+        database_mutations.mark_all_videos_skipped(set_skipped)
 

@@ -85,6 +85,39 @@ def update_playlist_order(videos):
                        videos)
 
 
+# MARK VIDEO AS SKIPPED ###############################################################################################
+def mark_all_videos_skipped(video_id_list):
+    """
+    Marks a list of videos as skipped.
+
+    :param video_id_list: An iterable of video ids
+    :return:
+    """
+
+    if not video_id_list:
+        return
+
+    videos_map = [{'video_id': v} for v in video_id_list]
+    print(videos_map)
+    utils.execute_many('''UPDATE existing_videos SET skipped = TRUE WHERE id = :video_id''', videos_map)
+
+
+def mark_all_videos_not_skipped(video_id_list):
+    """
+    Marks a list of videos as skipped.
+
+    :param video_id_list: An iterable of video ids
+    :return:
+    """
+
+    if not video_id_list:
+        return
+
+    videos_map = [{'video_id': v} for v in video_id_list]
+    print(videos_map)
+    utils.execute_many('''UPDATE existing_videos SET skipped = FALSE WHERE id = :video_id''', videos_map)
+
+
 # INSERT ##############################################################################################################
 def insert_created_playlist(playlist_id, start_date, end_date):
     """
