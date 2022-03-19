@@ -16,7 +16,8 @@ CREATED_PLAYLISTS = [('2012-01-00T12:00:00Z', '2013-06-25T17:59:59Z', 'JonTron E
 # Playlists containing all uploads
 UPLOADS_PLAYLISTS = [
     'UU9CuvdOVfMPvKCiwdGKL3cQ',  # Game Grumps
-    'UUAQ0o3l-H3y_n56C3yJ9EHA'  # The Grumps
+    'UUAQ0o3l-H3y_n56C3yJ9EHA',  # The Grumps
+    'UUXq2nALoSbxLMehAvYTxt_A',  # Grump Out
 ]
 
 # These playlists should not be considered when deciding insertion order
@@ -102,8 +103,15 @@ PLAYLIST_SPLITS = {
 # These videos should not be included in any playlist
 SKIP_VIDEOS = []
 
+# Videos in these playlists should be forcibly removed
+FORCE_REMOVE = [
+    'PLSdz4BBu9qoHZofz9ksTFWgG0gTDCmM7n',  # Grump Out 'Best of' Clips
+    'PLSdz4BBu9qoGv7JjJep5kcp7nVx-YbN56',  # Grump Out shorts
+    'PLSdz4BBu9qoEhfY6eMiO2LfIHYJppPToh',  # Grump Out best of Arin
+    'PLSdz4BBu9qoGIBQ8GmI5OQPaxbf4Y_n4S',  # Grump Out advent calendar
+    'PLSdz4BBu9qoEFojNsFdRnds9h2nDK2GJ-',  # The Grumpies
+]
+
 # Force videos that are out of order to be inserted correctly
 # Each list should start with a video in the correct slot
-FORCE_ORDER = {
-
-}
+FORCE_ORDER = {}
