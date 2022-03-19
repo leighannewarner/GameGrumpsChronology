@@ -108,7 +108,7 @@ def insert_existing_playlists(playlists):
     :param playlists: A list of dict objects containing a playlist_id key value
     :return:
     """
-    utils.execute_many('''INSERT INTO existing_playlists (id) VALUES (:playlist_id)''', playlists)
+    utils.execute_many('''INSERT OR IGNORE INTO existing_playlists (id) VALUES (:playlist_id)''', playlists)
 
 
 def insert_videos(videos):
@@ -121,7 +121,8 @@ def insert_videos(videos):
     """
 
     utils.execute_many(
-        '''INSERT INTO existing_videos (id,upload_date,playlist_order) VALUES (:video_id,:date,:playlist_order)''',
+        '''INSERT OR UPDATE INTO existing_videos (id,upload_date,playlist_order) 
+           VALUES (:video_id,:date,:playlist_order)''',
         videos)
 
 

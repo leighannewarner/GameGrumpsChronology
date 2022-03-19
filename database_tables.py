@@ -10,24 +10,24 @@ def init():
 
     :return:
     """
+
     conn = sqlite3.connect(DATABASE_NAME)
     c = conn.cursor()
-
     try:
         c.execute(
             '''CREATE TABLE existing_videos (
-                id text, upload_date text, existing_playlist_id text, 
-                created_playlist_id text, playlist_order text, processed bool)''')
+                id text PRIMARY KEY, upload_date text, existing_playlist_id text,
+                created_playlist_id text, playlist_order text, processed bool, skipped bool)''')
     except sqlite3.OperationalError as err:
         print(err)
 
     try:
-        c.execute('''CREATE TABLE existing_playlists (id text, date text)''')
+        c.execute('''CREATE TABLE existing_playlists (id text PRIMARY KEY, date text)''')
     except sqlite3.OperationalError as err:
         print(err)
 
     try:
-        c.execute('''CREATE TABLE created_playlists (id text, start_date text, end_date text)''')
+        c.execute('''CREATE TABLE created_playlists (id text PRIMARY KEY, start_date text, end_date text)''')
     except sqlite3.OperationalError as err:
         print(err)
 
