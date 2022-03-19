@@ -73,7 +73,7 @@ def list_videos_in_playlist(playlist_id):
     """
 
     utils.authorize()
-    return youtube_read.list_videos_in_playlist(utils.youtube_client, playlist_id)
+    return youtube_read.list_videos_in_playlist(youtube_client=utils.youtube_client, playlist_id=playlist_id)
 
 
 def delete_video_from_playlist(playlist_id, video_id):
@@ -86,7 +86,9 @@ def delete_video_from_playlist(playlist_id, video_id):
     """
 
     utils.authorize()
-    youtube_mutate.delete_video_from_playlist(utils.youtube_client, playlist_id, video_id)
+    youtube_mutate.delete_video_from_playlist(youtube_client=utils.youtube_client, playlist_id=playlist_id,
+                                              video_id=video_id)
+
 
 def delete_duplicate_videos_from_playlist(playlist_id, video_id):
     """
