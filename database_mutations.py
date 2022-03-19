@@ -123,3 +123,16 @@ def insert_videos(videos):
     utils.execute_many(
         '''INSERT INTO existing_videos (id,upload_date,playlist_order) VALUES (:video_id,:date,:playlist_order)''',
         videos)
+
+
+# DELETE ##############################################################################################################
+def delete_row(video_id):
+    """
+    Removes a video.
+
+    :param video_id:
+    :return:
+    """
+
+    utils.execute('''DELETE existing_videos SET created_playlist_id = :created_playlist_id WHERE id = :video_id''',
+                  {'video_id': video_id})
