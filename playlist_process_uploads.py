@@ -238,6 +238,8 @@ def _update_skipped():
         videos = operations.list_videos_in_playlist(playlist)
         playlist_videos.update([v.get('snippet').get('resourceId').get('videoId') for v in videos])
 
+    playlist_videos.update(config.SKIP_VIDEOS)
+
     set_skipped = set(playlist_videos)
     set_inserted = all_videos.difference(playlist_videos)
 
