@@ -1,3 +1,4 @@
+import database_reads
 import database_utils as utils
 import database_tables as tables
 import database_mutations as mutate
@@ -105,7 +106,29 @@ def find_playlist():
     """
 
     playlist_id = input('Playlist ID: ')
-    print(read.get_existing_playlist_row(playlist_id))
+    result = read.get_existing_playlist_row(playlist_id)
+
+    if result:
+        print('Existing playlist found: ')
+        print(result)
+        return
+
+    result = database_reads.get_created_playlist(playlist_id)
+    if result:
+        print('Created playlist found: ')
+        print(result)
+        print_created_playlist(result)
+        return
+
+    print('None found')
+
+
+def print_created_playlist(result):
+    confirm = input('Print playlist contents y/n: ')
+    if confirm == 'y':
+        videos = database_reads.get_video_queue_for_range(result['start_date'], result['end_date'])
+        for v in videos:
+            print(f'[{v["video_id"]}] / {v["order"]}')
 
 
 def print_created_playlist_table():

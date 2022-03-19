@@ -76,6 +76,17 @@ def get_existing_playlist_row(playlist_id):
 
 
 # CREATED PLAYLISTS ###################################################################################################
+def get_created_playlist(playlist_id):
+    """
+    Retrieves the playlist information given an id
+
+    :param playlist_id:
+    :return: A playlist object
+    """
+    row = utils.execute_one('''SELECT * FROM created_playlists WHERE id = :playlist_id''', {'playlist_id': playlist_id})
+    return {'playlist_id': row[0], 'start_date': row[1], 'end_date': row[2]}
+
+
 def get_created_playlist_id(start_date, end_date):
     """
     Retrieves the playlist id for a specified date range.
