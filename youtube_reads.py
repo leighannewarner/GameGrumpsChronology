@@ -38,7 +38,7 @@ def _list_videos_in_playlist_internal(youtube_client, playlist_id, pagination_to
     """
 
     request = youtube_client.playlistItems().list(
-        part=['id', 'snippet', 'contentDetails'],
+        part=['id', 'snippet', 'status'],
         maxResults=50,
         playlistId=playlist_id,
         pageToken=pagination_token
