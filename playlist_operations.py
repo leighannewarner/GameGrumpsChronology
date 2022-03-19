@@ -88,3 +88,15 @@ def delete_video_from_playlist(playlist_id, video_id):
     utils.authorize()
     youtube_mutate.delete_video_from_playlist(utils.youtube_client, playlist_id, video_id)
 
+def delete_duplicate_videos_from_playlist(playlist_id, video_id):
+    """
+    Delete duplicates of a video from the given playlist
+
+    :param playlist_id:
+    :param video_id:
+    :return:
+    """
+
+    utils.authorize()
+    youtube_mutate.delete_duplicate_videos_from_playlist(youtube_client=utils.youtube_client, video_id=video_id,
+                                                         playlist_id=playlist_id)

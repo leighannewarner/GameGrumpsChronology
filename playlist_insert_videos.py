@@ -48,7 +48,8 @@ def _update_playlist(playlist):
     print(f'{len(insert_ids)} videos to insert')
     _insert_videos_to_playlist(playlist['playlist_id'], queue, insert_ids)
 
-    # TODO: Remove duplicate videos
+    print(f'Checking for duplicates...')
+    _remove_duplicates(playlist['playlist_id'])
 
     # Diff the newly updated playlists to check for correct order
     live_playlist = _get_live_playlist(playlist['playlist_id'])
@@ -159,6 +160,14 @@ def _insert_queue_at_top(playlist_id, queue):
         if not _counter_ok():
             break
         operations.insert_video(playlist_id, video['video_id'], 0)
+
+
+def _remove_duplicates(playlist_id):
+    live_playlist = _get_live_playlist(playlist_id)
+    live_playlist.sort(key=lambda v: v['video_id'])
+    for i in range(len(live_playlist) - 1):
+        if live_playlist[i]['video_id'] == live_playlist[i + 1]['video_id']:
+            operations.delete_duplicate_videos_from_playlist(playlist_id, live_playlist[i]['video_id'])
 
 
 def _counter_ok():

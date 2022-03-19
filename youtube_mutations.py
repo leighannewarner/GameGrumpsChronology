@@ -44,6 +44,21 @@ def delete_video_from_playlist(youtube_client=None, video_id='', playlist_id='')
         utils.execute_request(update_request)
 
 
+def delete_duplicate_videos_from_playlist(youtube_client=None, video_id='', playlist_id=''):
+    get_request = youtube_client.playlistItems().list(
+        part="id",
+        playlistId=playlist_id,
+        videoId=video_id
+    )
+    result = utils.execute_request(get_request)
+
+    # Remove all but the first item
+    items = result.get('items')
+    for i in range(1, len(items)):
+        update_request = youtube_client.playlistItems().delete(id=items[i].get('id'))
+        utils.execute_request(update_request)
+
+
 def insert_video_into_playlist(youtube_client=None, video_id='', playlist_id='', position=0):
     request = youtube_client.playlistItems().insert(
         part="snippet",
