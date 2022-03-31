@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import database_mutations
 import database_mutations as database_mutate
 import database_reads
 import database_utils as database_util
@@ -84,22 +85,21 @@ def _process_uploads(response_items):
 
     for result in response_items:
         video_id = result.get('snippet').get('resourceId').get('videoId')
-        publish_date = result.get('snippet').get('publishedAt') or result.get('contentDetails').get('videoPublishedAt')
+        publish_date = result.get('snippet').get('publishedAt')
+        privacy_status = result.get('status').get('privacyStatus')
 
-        # Skip processing if the video is already processed
-        if database_reads.get_video_row(video_id) is not None:
-            continue
+        # Count new videos
+        if database_reads.get_video_row(video_id) is None:
+            counter += 1
 
-        # Skip processing if the video is in the SKIP_VIDEOS_LIST
-        # TODO: Handle if a video gets added or removed from the skip list
-        if video_id in config.SKIP_VIDEOS:
+        # Skip if the video it is currently private
+        if privacy_status != 'public':
             continue
 
         items.append({
             'video_id': video_id, 'date': publish_date,
             'playlist_order': database_util.get_order_string(publish_date, 0),
         })
-        counter += 1
 
     print(f'{counter} new videos')
     return items
@@ -206,7 +206,7 @@ def _process_playlist_videos(videos):
     # TODO: Handle if a video is in one of the strict chrono lists
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
-        publish_date = video.get('snippet').get('publishedAt') or video.get('contentDetails').get('videoPublishedAt')
+        publish_date = video.get('snippet').get('publishedAt')
         video_objects.append({'video_id': video_id, 'date': publish_date})
 
     video_objects = sorted(video_objects, key=lambda j: j['date'])
