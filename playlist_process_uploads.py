@@ -98,7 +98,7 @@ def _process_uploads(response_items):
 
         items.append({
             'video_id': video_id, 'date': publish_date,
-            'playlist_order': database_util.get_order_string(publish_date, 0),
+            'playlist_order': database_util.get_order_string(publish_date, 0), 'existing_playlist_id': '',
         })
 
     print(f'{counter} new videos')
@@ -185,12 +185,15 @@ def _process_playlist(playlists):
         playlist_id = playlist['playlist_id']
 
         print(f'[{playlist_id}] Processing playlist')
-        videos = operations.list_videos_in_playlist(playlist_id)
-        playlist_videos.extend(_process_playlist_videos(videos))
+        fetch_id = playlist_id
+        if playlist_id in config.ALTERNATE_PLAYLIST:
+            fetch_id = config.ALTERNATE_PLAYLIST[playlist_id]
+        videos = operations.list_videos_in_playlist(fetch_id)
+        playlist_videos.extend(_process_playlist_videos(videos, playlist_id))
     return playlist_videos
 
 
-def _process_playlist_videos(videos):
+def _process_playlist_videos(videos, playlist_id):
     """
     Determines the insertion order of a list of videos.
 
@@ -207,7 +210,7 @@ def _process_playlist_videos(videos):
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
         publish_date = video.get('snippet').get('publishedAt')
-        video_objects.append({'video_id': video_id, 'date': publish_date})
+        video_objects.append({'video_id': video_id, 'date': publish_date, 'existing_playlist_id': playlist_id})
 
     video_objects = sorted(video_objects, key=lambda j: j['date'])
 

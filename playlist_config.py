@@ -115,3 +115,6 @@ FORCE_REMOVE = [
 # Force videos that are out of order to be inserted correctly
 # Each list should start with a video in the correct slot
 FORCE_ORDER = {}
+
+# Use fan created playlist instead of the official one
+ALTERNATE_PLAYLIST = {}

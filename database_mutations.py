@@ -154,8 +154,23 @@ def insert_videos(videos):
     """
 
     utils.execute_many(
-        '''INSERT OR REPLACE INTO existing_videos (id,upload_date,playlist_order) 
-           VALUES (:video_id,:date,:playlist_order)''',
+        '''INSERT OR REPLACE INTO existing_videos (id,upload_date,playlist_order,existing_playlist_id) 
+           VALUES (:video_id,:date,:playlist_order,:existing_playlist_id)''',
+        videos)
+
+
+def set_existing_playlist_id(videos):
+    """
+    Insert all provided videos into the database, where each video is a map containing a video_id, date,
+    and playlist_order.
+
+    :param videos: A list containing dictionaries of video properties
+    :return:
+    """
+
+    utils.execute_many(
+        '''UPDATE existing_videos (existing_playlist_id) 
+           VALUES (:existing_playlist_id) WHERE id = :video_id''',
         videos)
 
 

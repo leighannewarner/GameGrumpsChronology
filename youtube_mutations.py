@@ -73,3 +73,29 @@ def insert_video_into_playlist(youtube_client=None, video_id='', playlist_id='',
             }
         })
     utils.execute_request(request)
+
+
+def update_video_in_playlist(youtube_client=None, video_id='', playlist_id='', position=0):
+    get_request = youtube_client.playlistItems().list(
+        part="id",
+        playlistId=playlist_id,
+        videoId=video_id
+    )
+    result = utils.execute_request(get_request)
+
+    for item in result.get('items'):
+        request = youtube_client.playlistItems().update(
+            part="snippet",
+            body={
+                "id": item.get('id'),
+                "snippet": {
+                    "playlistId": playlist_id,
+                    "position": position,
+                    "resourceId": {
+                        "kind": "youtube#video",
+                        "videoId": video_id
+                    }
+                }
+            })
+        utils.execute_request(request)
+

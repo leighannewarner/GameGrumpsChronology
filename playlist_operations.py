@@ -65,6 +65,23 @@ def insert_video(playlist_id, video_id, position):
                                               playlist_id=playlist_id, position=position)
 
 
+def update_video(playlist_id, video_id, position):
+    """
+
+    :param playlist_id:
+    :param video_id:
+    :param position:
+    :return:
+    """
+    utils.dry_run_prompt()
+
+    if utils.dry_run:
+        return
+
+    youtube_mutate.update_video_in_playlist(youtube_client=utils.youtube_client, video_id=video_id,
+                                            playlist_id=playlist_id, position=position)
+
+
 def list_videos_in_playlist(playlist_id):
     """
     Lists all uploads in the given playlist
