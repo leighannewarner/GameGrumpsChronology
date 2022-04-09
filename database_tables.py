@@ -13,11 +13,12 @@ def init():
 
     conn = sqlite3.connect(DATABASE_NAME)
     c = conn.cursor()
+
     try:
         c.execute(
             '''CREATE TABLE existing_videos (
                 id text PRIMARY KEY, upload_date text, existing_playlist_id text,
-                created_playlist_id text, playlist_order text, processed bool, skipped bool)''')
+                created_playlist_id text, playlist_order text, processed bool, skipped bool, public_video bool)''')
     except sqlite3.OperationalError as err:
         print(err)
 

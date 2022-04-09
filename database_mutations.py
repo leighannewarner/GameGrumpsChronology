@@ -154,8 +154,8 @@ def insert_videos(videos):
     """
 
     utils.execute_many(
-        '''INSERT OR REPLACE INTO existing_videos (id,upload_date,playlist_order,existing_playlist_id) 
-           VALUES (:video_id,:date,:playlist_order,:existing_playlist_id)''',
+        '''INSERT OR UPDATE INTO existing_videos (id,upload_date,playlist_order,existing_playlist_id,public_video) 
+           VALUES (:video_id,:date,:playlist_order,:existing_playlist_id,:public_video)''',
         videos)
 
 
@@ -169,8 +169,7 @@ def set_existing_playlist_id(videos):
     """
 
     utils.execute_many(
-        '''UPDATE existing_videos (existing_playlist_id) 
-           VALUES (:existing_playlist_id) WHERE id = :video_id''',
+        '''UPDATE existing_videos SET existing_playlist_id = :existing_playlist_id WHERE id = :video_id''',
         videos)
 
 

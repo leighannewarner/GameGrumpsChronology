@@ -12,7 +12,7 @@ def get_video_row(video_id):
     """
 
     row = utils.execute_one(
-        '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed,skipped 
+        '''SELECT id,upload_date,existing_playlist_id,created_playlist_id,playlist_order,processed,skipped,public_video 
         FROM existing_videos WHERE id = :video_id''',
         {'video_id': video_id})
 
@@ -20,7 +20,7 @@ def get_video_row(video_id):
         return None
 
     return {'video_id': row[0], 'upload_date': row[1], 'existing_playlist_id': row[2], 'created_playlist_id': row[3],
-            'playlist_order': row[4], 'processed': row[5], 'skipped': row[6]}
+            'playlist_order': row[4], 'processed': row[5], 'skipped': row[6], 'public_video': row[7]}
 
 
 def get_all_videos():
@@ -48,7 +48,7 @@ def get_video_queue():
     videos = []
     for row in utils.execute(
             '''SELECT id,created_playlist_id,playlist_order,processed,skipped FROM existing_videos 
-            WHERE created_playlist_id IS NULL AND (skipped IS 0 OR skipped IS NULL)
+            WHERE created_playlist_id IS NULL AND (skipped IS 0 OR skipped IS NULL) AND public_video IS 1
             ORDER BY playlist_order DESC''',
             {'processed': False}):
         videos.append(
@@ -66,7 +66,10 @@ def get_video_queue_for_range(start_date, end_date):
     videos = []
     for row in utils.execute(
             '''SELECT id,created_playlist_id,playlist_order,processed FROM existing_videos 
-            WHERE playlist_order >= :start_date AND playlist_order <= :end_date AND (skipped IS 0 OR skipped IS NULL)
+            WHERE playlist_order >= :start_date 
+                AND playlist_order <= :end_date 
+                AND (skipped IS 0 OR skipped IS NULL)
+                AND public_video IS 1
             ORDER BY playlist_order DESC''',
             {'start_date': database_utils.get_order_string(start_date, 0),
              'end_date': database_utils.get_order_string(end_date, 9999)}):

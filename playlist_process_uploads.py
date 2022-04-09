@@ -24,13 +24,13 @@ def process():
 
     # List and process all the uploads on the Channel
     raw_uploads = _list_all_uploads()
-    new_uploads = _process_uploads(raw_uploads)
+    processed_uploads = _process_uploads(raw_uploads)
 
     if utils.dry_run:
-        for upload in new_uploads:
+        for upload in processed_uploads:
             print(f'Insert {upload["video_id"]} / {upload["date"]} / {upload["playlist_order"]}')
     else:
-        database_mutate.insert_videos(new_uploads)
+        database_mutate.insert_videos(processed_uploads)
 
     # Update the skipped bit for videos
     _update_skipped()
@@ -38,22 +38,22 @@ def process():
     # List and process all playlists
     raw_playlists = _list_channel_playlists()
     processed_playlists = _process_channel_playlists(raw_playlists)
-    new_playlists = _filter_channel_playlists(processed_playlists)
 
     if utils.dry_run:
-        for playlist in new_playlists:
+        for playlist in processed_playlists:
             print(f'Insert {playlist["playlist_id"]}')
         print('')
     else:
-        database_mutate.insert_existing_playlists(new_playlists)
+        database_mutate.insert_existing_playlists(processed_playlists)
 
     playlist_videos = _process_playlist(processed_playlists)
     if utils.dry_run:
         for video in playlist_videos:
-            print(f'Set {video["video_id"]} / {video["playlist_order"]}')
+            print(f'Set {video["video_id"]} / {video["playlist_order"]} / {video["existing_playlist_id"]}')
         print('')
     else:
         database_mutate.update_playlist_order(playlist_videos)
+        database_mutate.set_existing_playlist_id(playlist_videos)
 
 
 def _list_all_uploads():
@@ -92,13 +92,10 @@ def _process_uploads(response_items):
         if database_reads.get_video_row(video_id) is None:
             counter += 1
 
-        # Skip if the video it is currently private
-        if privacy_status != 'public':
-            continue
-
         items.append({
             'video_id': video_id, 'date': publish_date,
             'playlist_order': database_util.get_order_string(publish_date, 0), 'existing_playlist_id': '',
+            'public_video': privacy_status == 'public'
         })
 
     print(f'{counter} new videos')
@@ -147,31 +144,6 @@ def _process_channel_playlists(response_items):
     return items
 
 
-def _filter_channel_playlists(playlists):
-    """
-    Filters out previously added playlists
-
-    :param playlists:
-    :return: A list of newly added playlists as dict objects
-    """
-
-    items = []
-    counter = 0
-
-    for playlist in playlists:
-        playlist_id = playlist['playlist_id']
-
-        # Skip if the playlist is already processed
-        if database_reads.get_existing_playlist_row(playlist_id) is not None:
-            continue
-
-        counter += 1
-        items.append(playlist)
-
-    print(f'{counter} new playlists')
-    return items
-
-
 def _process_playlist(playlists):
     """
     Lists items in each playlists and determines their insertion order
@@ -188,6 +160,7 @@ def _process_playlist(playlists):
         fetch_id = playlist_id
         if playlist_id in config.ALTERNATE_PLAYLIST:
             fetch_id = config.ALTERNATE_PLAYLIST[playlist_id]
+
         videos = operations.list_videos_in_playlist(fetch_id)
         playlist_videos.extend(_process_playlist_videos(videos, playlist_id))
     return playlist_videos
@@ -209,8 +182,16 @@ def _process_playlist_videos(videos, playlist_id):
     # TODO: Handle if a video is in one of the strict chrono lists
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
+        status = video.get('status').get('privacyStatus')
         publish_date = video.get('snippet').get('publishedAt')
         video_objects.append({'video_id': video_id, 'date': publish_date, 'existing_playlist_id': playlist_id})
+
+        # If the video is in the playlist, but not in the db (eg: not a grumps upload), add it real quick
+        if database_reads.get_video_row(video_id) is None:
+            database_mutations.insert_videos(
+                [{'video_id': video_id, 'date': publish_date,
+                  'playlist_order': database_util.get_order_string(publish_date, 0),
+                  'existing_playlist_id': playlist_id, 'public_video': status == 'public'}])
 
     video_objects = sorted(video_objects, key=lambda j: j['date'])
 
@@ -256,4 +237,3 @@ def _update_skipped():
     if not utils.dry_run:
         database_mutations.mark_all_videos_not_skipped(set_inserted)
         database_mutations.mark_all_videos_skipped(set_skipped)
-
