@@ -28,7 +28,7 @@ def process():
 
     if utils.dry_run:
         for upload in processed_uploads:
-            print(f'Insert {upload["video_id"]} / {upload["date"]} / {upload["playlist_order"]}')
+            print(f'Insert {upload["video_id"]} / {upload["upload_date"]} / {upload["playlist_order"]}')
     else:
         database_mutate.insert_videos(processed_uploads)
 
@@ -93,7 +93,7 @@ def _process_uploads(response_items):
             counter += 1
 
         items.append({
-            'video_id': video_id, 'date': publish_date,
+            'video_id': video_id, 'upload_date': publish_date,
             'playlist_order': database_util.get_order_string(publish_date, 0), 'existing_playlist_id': '',
             'public_video': privacy_status == 'public'
         })
@@ -183,21 +183,25 @@ def _process_playlist_videos(videos, playlist_id):
     for video in videos:
         video_id = video.get('snippet').get('resourceId').get('videoId')
         status = video.get('status').get('privacyStatus')
-        publish_date = video.get('snippet').get('publishedAt')
-        video_objects.append({'video_id': video_id, 'date': publish_date, 'existing_playlist_id': playlist_id})
+
+        video_row = database_reads.get_video_row(video_id)
 
         # If the video is in the playlist, but not in the db (eg: not a grumps upload), add it real quick
         if database_reads.get_video_row(video_id) is None:
-            database_mutations.insert_videos(
-                [{'video_id': video_id, 'date': publish_date,
-                  'playlist_order': database_util.get_order_string(publish_date, 0),
-                  'existing_playlist_id': playlist_id, 'public_video': status == 'public'}])
+            publish_date = video.get('snippet').get('publishedAt')
+            video_row = {'video_id': video_id, 'upload_date': publish_date,
+                         'playlist_order': database_util.get_order_string(publish_date, 0),
+                         'existing_playlist_id': playlist_id, 'public_video': status == 'public'}
+            database_mutations.insert_videos([video_row])
 
-    video_objects = sorted(video_objects, key=lambda j: j['date'])
+        video_objects.append(
+            {'video_id': video_id, 'upload_date': video_row['upload_date'], 'existing_playlist_id': playlist_id})
+
+    video_objects = sorted(video_objects, key=lambda j: j['upload_date'])
 
     oldest_publish_date = None
     for video in video_objects[::1]:
-        oldest_publish_date = video['date']
+        oldest_publish_date = video['upload_date']
         if oldest_publish_date is not None:
             break
 
