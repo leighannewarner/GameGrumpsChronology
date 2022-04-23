@@ -23,6 +23,7 @@ def insert():
     for playlist in playlists:
         print(f'Updating [{playlist["playlist_id"]}]')
         _update_playlist(playlist)
+        print(f'\n========================================\n')
 
 
 def _update_playlist(playlist):
@@ -152,6 +153,7 @@ def _insert_videos_to_playlist(playlist_id, queue, insert_ids):
             if not utils.dry_run:
                 counter += 1
                 operations.insert_video(playlist_id, current_vid['video_id'], i + 1)
+                time.sleep(1)
             insert_videos.pop()
             continue
         i -= 1
@@ -177,6 +179,7 @@ def _insert_queue_at_top(playlist_id, queue):
             break
         counter += 1
         operations.insert_video(playlist_id, video['video_id'], 0)
+        time.sleep(1)
 
 
 def _remove_duplicates(playlist_id):

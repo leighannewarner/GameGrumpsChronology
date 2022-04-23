@@ -17,6 +17,7 @@ def main():
         print('[0] Create playlists')
         print('[1] Process playlists')
         print('[2] Insert videos')
+        print('[3] Update playlists')
         input_value = input('Option: ')
 
         if input_value == '0':
@@ -24,6 +25,9 @@ def main():
         elif input_value == '1':
             update_playlists()
         elif input_value == '2':
+            insert_videos()
+        elif input_value == '3':
+            update_playlists()
             insert_videos()
         else:
             done = True
