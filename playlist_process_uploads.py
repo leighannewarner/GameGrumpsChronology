@@ -133,7 +133,6 @@ def _process_channel_playlists(response_items):
         playlist_id = result.get('id')
 
         # Skip processing if the playlist should be skipped when considering insertion order
-        # TODO: Handle if a playlist gets added or removed from the skip list
         if playlist_id in config.SKIP_PLAYLISTS or playlist_id in config.STRICT_CHRONO:
             continue
 
@@ -153,6 +152,7 @@ def _process_playlist(playlists):
     """
 
     playlist_videos = []
+    strict_chrono_videos = _get_strict_chrono()
     for playlist in playlists:
         playlist_id = playlist['playlist_id']
 
@@ -162,11 +162,11 @@ def _process_playlist(playlists):
             fetch_id = config.ALTERNATE_PLAYLIST[playlist_id]
 
         videos = operations.list_videos_in_playlist(fetch_id)
-        playlist_videos.extend(_process_playlist_videos(videos, playlist_id))
+        playlist_videos.extend(_process_playlist_videos(videos, playlist_id, strict_chrono_videos))
     return playlist_videos
 
 
-def _process_playlist_videos(videos, playlist_id):
+def _process_playlist_videos(videos, playlist_id, strict_chrono_videos):
     """
     Determines the insertion order of a list of videos.
 
@@ -178,27 +178,40 @@ def _process_playlist_videos(videos, playlist_id):
         return []
     video_objects = []
 
-    # TODO: Handle playlist splits
-    # TODO: Handle if a video is in one of the strict chrono lists
     for video in videos:
+
         video_id = video.get('snippet').get('resourceId').get('videoId')
         status = video.get('status').get('privacyStatus')
+        publish_date = video.get('snippet').get('publishedAt')
 
         video_row = database_reads.get_video_row(video_id)
 
         # If the video is in the playlist, but not in the db (eg: not a grumps upload), add it real quick
         if database_reads.get_video_row(video_id) is None:
-            publish_date = video.get('snippet').get('publishedAt')
             video_row = {'video_id': video_id, 'upload_date': publish_date,
                          'playlist_order': database_util.get_order_string(publish_date, 0),
                          'existing_playlist_id': playlist_id, 'public_video': status == 'public'}
             database_mutations.insert_videos([video_row])
+        elif video_id in strict_chrono_videos:
+            continue
 
         video_objects.append(
             {'video_id': video_id, 'upload_date': video_row['upload_date'], 'existing_playlist_id': playlist_id})
 
     video_objects = sorted(video_objects, key=lambda j: j['upload_date'])
 
+
+    return _set_order_string(playlist_id, video_objects)
+
+
+def _set_order_string(playlist_id, video_objects):
+    """
+    Sets the order string in the video objects list
+
+    :param playlist_id: The id of the playlist being processed
+    :param video_objects: The list of video objects to amend
+    :return: The amended video objects with playlist_order
+    """
     oldest_publish_date = None
     for video in video_objects[::1]:
         oldest_publish_date = video['upload_date']
@@ -206,12 +219,42 @@ def _process_playlist_videos(videos, playlist_id):
             break
 
     index = 0
+    current_sort_date = oldest_publish_date
+    is_split_playlist = playlist_id in config.PLAYLIST_SPLITS.keys()
+    split_index = 0
     for i in range(len(video_objects)):
-        video_objects[i]['playlist_order'] = database_util.get_order_string(oldest_publish_date, index)
+        if is_split_playlist and split_index < len(config.PLAYLIST_SPLITS[playlist_id]) and \
+                video_objects[i]['upload_date'] >= config.PLAYLIST_SPLITS[playlist_id][split_index]:
+            print(f'[{playlist_id}] Splitting at {config.PLAYLIST_SPLITS[playlist_id][split_index]}.')
+            current_sort_date = config.PLAYLIST_SPLITS[playlist_id][split_index]
+            split_index = split_index + 1
+            index = 0
+
+        video_objects[i]['playlist_order'] = database_util.get_order_string(current_sort_date, index)
         index = index + 1
 
     print(f'Processed {index} videos\n')
+
     return video_objects
+
+
+def _get_strict_chrono():
+    """
+    List videos in strict chronological playlists.
+
+    :return: A list of video ids
+    """
+
+    video_ids = set([])
+    counter = 0
+
+    for playlist_id in config.STRICT_CHRONO:
+        counter += 1
+        items = operations.list_videos_in_playlist(playlist_id)
+        video_ids.update([v.get('snippet').get('resourceId').get('videoId') for v in items])
+
+    print(f'{counter} playlists processed')
+    return video_ids
 
 
 def _update_skipped():

@@ -236,7 +236,6 @@ def _reorder_videos(playlist_id, queue, live_playlist):
         live_vid = live_playlist[i]["video_id"]
         queue_vid = queue[i]
 
-        print(f'[{position}] {live_vid} {queue_vid["video_id"]}')
         if live_vid != queue_vid["video_id"] and (
                 last_change['id'] == queue_vid["video_id"] and last_change['position'] == position):
             print(f'Duplicate move detected! {queue_vid["video_id"]} to {position}')
@@ -253,7 +252,6 @@ def _reorder_videos(playlist_id, queue, live_playlist):
 
             i = len(queue) - 1
             position = 0
-            print('')
             continue
 
         position += 1
